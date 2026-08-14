@@ -117,7 +117,7 @@ img{ max-width:100%; }
   letter-spacing:-.015em; margin:20px 0 0;
 }
 .hero h1 .em{
-  background:linear-gradient(transparent 66%, rgba(235,104,52,.55) 66%);
+  background:linear-gradient(transparent 72%, rgba(235,104,52,.9) 72%);
   padding:0 2px;
 }
 .hero .lede{
@@ -136,7 +136,7 @@ img{ max-width:100%; }
   font-size:14px; line-height:1.85; color:#c9d8e8;
 }
 .hero-fail-a b{
-  color:#fff; background:linear-gradient(transparent 68%, rgba(235,104,52,.5) 68%);
+  color:#fff; background:linear-gradient(transparent 74%, rgba(235,104,52,.85) 74%);
 }
 .hero-scope{
   margin-top:18px; font-size:13.5px; line-height:1.85; color:#a9c0d6;
@@ -267,8 +267,9 @@ img{ max-width:100%; }
 .opt-mark svg{ opacity:0; transform:scale(.6); transition:opacity .13s, transform .13s; }
 .opt.is-on .opt-mark svg{ opacity:1; transform:scale(1); }
 .opt-txt{ flex:1; min-width:0; }
-.opt-label{ font-size:15.5px; font-weight:700; line-height:1.55; }
-.opt-sub{ font-size:12.5px; color:var(--ink-2); margin-top:4px; line-height:1.7; }
+/* 中身は span で組んでいるので、明示的にブロック化しないと1行に繋がる */
+.opt-label{ display:block; font-size:15.5px; font-weight:700; line-height:1.55; }
+.opt-sub{ display:block; font-size:12.5px; color:var(--ink-2); margin-top:4px; line-height:1.7; }
 .opt-badge{
   display:inline-block; font-size:11px; font-weight:800; padding:2px 8px;
   border-radius:5px; background:var(--series-ai-soft); color:#a8431a; margin-top:7px;
@@ -292,8 +293,8 @@ img{ max-width:100%; }
 }
 .jobcard.is-on .jobcard-no{ background:var(--navy); color:#fff; }
 .jobcard-txt{ flex:1; min-width:0; }
-.jobcard-name{ font-size:15.5px; font-weight:800; line-height:1.5; }
-.jobcard-meta{ font-size:12px; color:var(--muted); margin-top:3px; }
+.jobcard-name{ display:block; font-size:15.5px; font-weight:800; line-height:1.5; }
+.jobcard-meta{ display:block; font-size:12px; color:var(--muted); margin-top:3px; }
 .jobcard-check{
   flex:none; width:23px; height:23px; border-radius:7px; border:2px solid #c3ceda;
   display:grid; place-items:center; transition:background .13s, border-color .13s;
@@ -642,8 +643,8 @@ img{ max-width:100%; }
   color:var(--navy); display:grid; place-items:center; font-size:14px; font-weight:800;
 }
 .acc-txt{ flex:1; min-width:0; }
-.acc-name{ font-size:14.5px; font-weight:800; line-height:1.5; }
-.acc-meta{ font-size:12px; color:var(--muted); margin-top:2px; font-variant-numeric:tabular-nums; }
+.acc-name{ display:block; font-size:14.5px; font-weight:800; line-height:1.5; }
+.acc-meta{ display:block; font-size:12px; color:var(--muted); margin-top:2px; font-variant-numeric:tabular-nums; }
 .acc-chev{ flex:none; color:var(--muted); transition:transform .22s ease; }
 .acc.is-open .acc-chev{ transform:rotate(180deg); }
 .acc-panel{ display:none; padding:0 17px 19px; border-top:1px solid var(--line-soft); }
@@ -702,7 +703,7 @@ img{ max-width:100%; }
 }
 .closing-main{ font-size:16px; line-height:1.95; color:#e2ebf4; font-weight:600; }
 .closing-main b{
-  color:#fff; background:linear-gradient(transparent 68%, rgba(235,104,52,.5) 68%);
+  color:#fff; background:linear-gradient(transparent 74%, rgba(235,104,52,.85) 74%);
 }
 .closing-sub{
   margin-top:17px; padding-top:16px; border-top:1px solid rgba(255,255,255,.17);
@@ -892,13 +893,13 @@ img{ max-width:100%; }
    すべての係数に「なぜその値か」を添える。根拠のない数字を置かない。
    ========================================================================= */
 
-/* 習熟係数：指示の作り方に慣れているほど、同じ工程でも実際に削れる割合が上がる。
-   1.0 を「指示の型をひととおり持っている人」として、そこからの相対値で置く。 */
+/* 習熟係数：AI代替率は「指示が適切に書けている場合の値」として置いてある。
+   したがって上限は 1.00 で、そこを超えることはない。慣れていない人はそこから割り引く。 */
 const SKILL = {
   none:  { k:0.70, label:'ほとんど使ったことがない' },
   tried: { k:0.85, label:'試したが期待外れだった' },
   some:  { k:0.95, label:'週に何度か使っている' },
-  daily: { k:1.05, label:'毎日使っている' }
+  daily: { k:1.00, label:'毎日使っている' }
 };
 
 /* 機密係数：社内の生成AI利用ルール。
@@ -914,6 +915,24 @@ const CONF = {
    削減時間だけで並べると「半期に1回」の業務が不当に上位に来ないため、
    「次にその業務が来るまでの近さ」と「工程の定型度」で重みを付ける。 */
 const EASE_NOTE = '削減時間 × 着手しやすさ（次の発生までの近さ／工程の定型度）';
+
+/* 工程が「自分に残る側」になる理由の型。結論サマリの文言に使う。
+   「渡さない」理由は工程ごとに違う。すべてを「判断が要る」で片づけない。 */
+const KEEP_TYPE = {
+  weekly:  ['system','judgment','judgment','judgment','judgment','system'],
+  meeting: ['judgment','hands','judgment','judgment','verify','hands'],
+  review:  ['memory','responsibility','judgment','judgment','judgment'],
+  ringi:   ['judgment','judgment','judgment','verify','hands'],
+  numbers: ['system','memory','judgment','verify','judgment']
+};
+const KEEP_CLAUSE = {
+  judgment:       'ここはあなたの判断が要ります',
+  system:         'ここはAIではなく仕組みで解く工程です',
+  responsibility: 'ここは責任があなたにある工程です',
+  verify:         'ここは自分で確かめる工程です',
+  hands:          'ここは手を動かす工程で、AIでは減りません',
+  memory:         'ここはあなたの記憶にしかない工程です'
+};
 
 const VERDICT = {
   ai:    { label:'AIに渡す',   cls:'ai'    },
@@ -938,7 +957,7 @@ const JOBS = [
   id:'weekly', no:'①', name:'部下の週報・日報の取りまとめ', short:'週報の取りまとめ',
   freq:'週次', occLabel:'毎週', perWeek:1, ease:0.95, depth:'deep',
   easeWhy:'毎週来るので、直した効果がその週から出る',
-  nextIn:'次の締めは平均3日後',
+  nextIn:'次の締切まで、長くても7日',
   steps:[
     { n:'提出の催促と収集',        d:'未提出者に声をかけ、バラバラの書式を揃える',
       share:.12, aiRate:.00, sens:false,
@@ -1044,7 +1063,7 @@ ${c.confLine}
   id:'meeting', no:'②', name:'会議資料・議題の作成', short:'会議資料の作成',
   freq:'週次', occLabel:'毎週', perWeek:1, ease:0.90, depth:'deep',
   easeWhy:'毎週来る。ただし「何を決める会議か」を詰める工程が先に要る',
-  nextIn:'次の会議まで平均4日',
+  nextIn:'次の会議まで、長くても7日',
   steps:[
     { n:'何を決める会議かを決める', d:'目的・ゴール・落としどころを固める',
       share:.15, aiRate:.15, sens:false,
@@ -1222,7 +1241,7 @@ ${c.confLine}`; } }
   id:'ringi', no:'④', name:'稟議・申請書の説明文作成', short:'稟議・申請書',
   freq:'随時', occLabel:'月に数件', perWeek:1, ease:0.85, depth:'light',
   easeWhy:'型が決まっていて定型度が高い。5業務の中で最も削減率が高い',
-  nextIn:'次の申請は平均10日以内',
+  nextIn:'発生は随時。次に申請が来たその日に使える',
   steps:[
     { n:'背景・目的を整理する',       d:'何に困っていて、なぜ必要かを言語化する',
       share:.20, aiRate:.30, sens:true,
@@ -1291,7 +1310,7 @@ ${c.confLine}`; } }
   id:'numbers', no:'⑤', name:'部門数字の説明文作成', short:'部門数字の説明',
   freq:'月次', occLabel:'毎月', perWeek:1, ease:0.80, depth:'light',
   easeWhy:'月1回。型は固定だが、要因分析の工程が重いぶん削減率は控えめ',
-  nextIn:'次の月次まで平均15日',
+  nextIn:'次の月次まで、長くても30日',
   steps:[
     { n:'数字を集計・抽出する',       d:'システムやExcelから必要な数字を取り出す',
       share:.22, aiRate:.00, sens:false,
@@ -1390,7 +1409,7 @@ const COMMON_QS = [
       { label:'週に何度か使っている', v:'some',
         sub:'工程を切り分けると、もう一段削れます' },
       { label:'毎日使っていて、指示の型もある程度ある', v:'daily',
-        sub:'型がある前提で、少し強めに見積もります' }
+        sub:'AI代替率は「指示が適切に書けている場合」の値です。割り引かず、そのまま計算します' }
     ] },
 
   { id:'conf', tag:'社内のルール', title:'社内で、生成AIの業務利用はどう扱われていますか？',
@@ -1499,6 +1518,12 @@ function fmtHero(m){
   if (r === 0) return '<span class="num">' + h + '</span><span class="unit">時間</span>';
   return '<span class="num">' + h + '</span><span class="unit">時間</span>' +
          '<span class="num">' + r + '</span><span class="unit">分</span>';
+}
+/* プロンプトの呼び方。①②は2本立てなので「STEP 1のプロンプト」、
+   1本しかない業務は tag が 'PROMPT' なので、単に「プロンプト」と呼ぶ。 */
+function promptRef(job){
+  const tag = job.prompts[0].tag;
+  return tag === 'PROMPT' ? 'プロンプト' : esc(tag) + 'のプロンプト';
 }
 function toast(msg){
   const t = el('toast');
@@ -2202,17 +2227,20 @@ function renderResult(R){
 
   /* 要点（読み飛ばす人のための3行） */
   const bigStep = top.steps.slice().sort(function(a, b){ return b.saved - a.saved; })[0];
+  /* 「渡さない」例は、判定が human の工程からのみ選ぶ。
+     半分渡す工程を「渡さない」と書くと、下の工程分解表と矛盾する。 */
   const humanStep = top.steps.filter(function(s){ return s.verdict === 'human'; })
                             .sort(function(a, b){ return b.cur - a.cur; })[0]
                  || top.steps.slice().sort(function(a, b){ return a.effRate - b.effRate; })[0];
+  const keepType = (KEEP_TYPE[top.job.id] || [])[humanStep.i] || 'judgment';
   h += '<div class="gist">' +
     '<p class="gist-label">結論（ここだけ読めば動けます）</p>' +
     '<ol class="gist-list">' +
       '<li><b>来週やるのは' + top.job.no + ' ' + esc(top.job.short) + 'の1つだけ。</b>' +
         'ここで週' + fmtMin(top.saved) + 'が浮きます。</li>' +
       '<li><b>渡すのは「' + esc(bigStep.def.n) + '」工程（週' + fmtMin(bigStep.saved) + '）。</b>' +
-        '渡さないのは「' + esc(humanStep.def.n) + '」——ここはあなたの判断が要ります。</li>' +
-      '<li><b>今日やることは、下の' + esc(top.job.prompts[0].tag) + 'のプロンプトをコピーしておくことだけ。</b></li>' +
+        '渡さないのは「' + esc(humanStep.def.n) + '」——' + KEEP_CLAUSE[keepType] + '。</li>' +
+      '<li><b>今日やることは、下の' + promptRef(top.job) + 'をコピーしておくことだけ。</b></li>' +
     '</ol>' +
   '</div>';
 
@@ -2301,7 +2329,7 @@ function renderResult(R){
       '</p>' +
       '<p class="closing-sub">' +
         '今日やることは1つだけです。<b>' + top.job.no + ' ' + esc(top.job.short) +
-        '</b>の<b>' + esc(top.job.prompts[0].tag) + '</b>のプロンプトをコピーして、どこかに貼り付けて置いておく。' +
+        '</b>の<b>' + promptRef(top.job) + '</b>をコピーして、どこかに貼り付けて置いておく。' +
         'それだけで、来週の' + esc(top.job.plan[0].when) + 'に手が動きます。<br>' +
         (R.rows.length > 1
           ? '<b>残り' + (R.rows.length - 1) + '業務は、今日は見なくて大丈夫です。</b>'
