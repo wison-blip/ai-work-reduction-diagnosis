@@ -707,6 +707,20 @@ html{ scroll-behavior:smooth; }
 .plan-txt b{ font-weight:800; }
 .plan-cost{ font-size:11.5px; color:var(--muted); margin-top:4px; }
 
+/* --- 定着の見通し --- */
+.ramp{ margin-top:12px; }
+.ramp-t{ font-size:14.5px; font-weight:800; margin-bottom:4px; }
+.ramp-w{ font-weight:700; white-space:nowrap; }
+.ramp-v{
+  font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap;
+  color:var(--accent); font-size:14px;
+}
+.ramp-v.is-minus{ color:var(--muted); }
+.ramp-n{ color:var(--ink-2); line-height:1.7; }
+.ramp-n b{ color:var(--ink); }
+.ramp-f{ font-size:12px; color:var(--muted); margin-top:11px; line-height:1.75; }
+.ramp-f b{ color:var(--ink-2); }
+
 /* --- アコーディオン --- */
 .acc{
   background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
@@ -1089,7 +1103,7 @@ const JOBS = [
     { when:'その直後', txt:'出てきた「材料」を上から読み、<b>あなたの判断を3行だけ書き足す</b>。「A案件は先方都合だから問題なし」「Bさんは要フォロー」——ここがあなたの残す工程。', cost:'所要 約10分' },
     { when:'そのあと', txt:'<b>判断メモごとSTEP2に渡して報告文を作る。</b>手直しは1〜2箇所で済みます。', cost:'所要 約5分' }
   ],
-  invest:'初回だけ、STEP1の出力を見てフォーマットの行を2〜3個あなたの職場の言い方に書き換えてください。その20分が唯一の初期投資です。2回目からはコピペだけになります。',
+  invest:'初回だけ、STEP1の出力を見てフォーマットの行を2〜3個あなたの職場の言い方に書き換えてください。その25分が唯一の初期投資です。2回目からはコピペだけになります。',
   prompts:[
     { tag:'STEP 1', title:'週報を「判断材料」に変える（要約させない）',
       aim:[
@@ -1826,6 +1840,7 @@ function buildQueue(){
 
 const WEEKS_PER_MONTH = 4.33;   /* 12か月 ÷ 52週 */
 const WEEKS_PER_HALF  = 26;     /* 半期 */
+const SETUP_MIN       = 25;     /* 初回のプロンプト調整（業務あたり・分）。画面の3か所で同じ値を使う */
 const WORK_WEEKS      = 46;     /* 年換算に使う稼働週数（有給・年末年始・祝日週を控除した控えめな値） */
 const HOURS_PER_DAY   = 8;
 
@@ -1941,7 +1956,7 @@ function compute(){
     skill: skill, conf: conf, skillOpt: skillOpt, confLabel: confLabel(),
     skillKey: skillKey, confKey: confKey,
     /* 立ち上がりコスト：業務あたり25分の初期調整 × 2週 */
-    setupMin: rows.length * 25
+    setupMin: rows.length * SETUP_MIN
   };
 }
 
@@ -2188,7 +2203,7 @@ function renderHero(R){
           '</div>'
         : '<div class="r-honest">' + ICON.warn +
             '<div><b>初週からこの数字にはなりません。</b>' +
-            '1〜2週目は、プロンプトを自分の職場の言い方に合わせる調整で、業務あたり20〜30分（合計 約' +
+            '1〜2週目は、プロンプトを自分の職場の言い方に合わせる調整で、業務あたり約' + SETUP_MIN + '分（合計 約' +
             fmtMin(R.setupMin) + '）かかります。上の数字に乗るのは3週目からです。' +
             'そう出ないツールは、たぶん盛っています。</div>' +
           '</div>') +
@@ -2398,7 +2413,22 @@ function renderOpenLinks(R){
 /* ---------------------------------------------------------------------------
    結果：来週の手順
    ------------------------------------------------------------------------ */
-function renderPlan(r){
+function renderPlan(r, R){
+  /* 初回の手順だけ見せて終わると「で、いつから効くのか」に答えられない。
+     立ち上がりの3週間を、実際の数字で出す。1週目がマイナスでも、そう書く。 */
+  const setup = SETUP_MIN;
+  const w1 = r.saved * 0.4 - setup;
+  const w2 = r.saved * 0.7;
+  const w3 = r.saved;
+  const row = function(when, min, note){
+    const minus = min < 0;
+    return '<tr>' +
+      '<td class="ramp-w">' + esc(when) + '</td>' +
+      '<td class="ramp-v ' + (minus ? 'is-minus' : '') + '">' +
+        (minus ? '−' + fmtMin(-min) : '＋' + fmtMin(min)) + '</td>' +
+      '<td class="ramp-n">' + note + '</td>' +
+    '</tr>';
+  };
   return '<div class="plan">' + r.job.plan.map(function(p){
     return '<div class="plan-item">' +
       '<span class="plan-when">' + esc(p.when) + '</span>' +
@@ -2407,6 +2437,21 @@ function renderPlan(r){
       '</div>' +
     '</div>';
   }).join('') + '</div>' +
+
+  '<div class="card ramp">' +
+    '<p class="ramp-t">この業務が、いつから効いてくるか</p>' +
+    '<div class="tbl-scroll"><table class="tbl">' +
+      '<thead><tr><th>いつ</th><th>浮く時間</th><th>その週に起きること</th></tr></thead><tbody>' +
+        row('1週目', w1, 'プロンプトを自分の職場の言い方に直す週。<b>ここは増えます。</b>') +
+        row('2週目', w2, '手直しが減り、7割ほどが乗ってきます') +
+        row('3週目〜', w3, '<b>上のヒーロー数字はここです。</b>ここから毎週続きます') +
+      '</tbody></table></div>' +
+    '<p class="ramp-f">1週目のマイナスは、' + fmtMin(setup) + 'の初期調整ぶんです。' +
+      '<b>3週目までに取り返します</b>（累計で' +
+      fmtMin(Math.max(0, w1 + w2 + w3)) + '）。' +
+      'ここを隠して「初週から◯時間」と書くツールもありますが、そうはなりません。</p>' +
+  '</div>' +
+
   '<div class="note info" style="margin-top:11px">' + ICON.warn +
     '<div><b>初期投資について。</b>' + esc(r.job.invest) + '</div></div>';
 }
@@ -2613,6 +2658,10 @@ function renderBasis(R, top){
             (zeroNote ? '<span style="color:var(--muted);font-weight:600">' + zeroNote + '</span>' : '') + '</td></tr>';
         }).join('') +
       '</tbody></table></div>' +
+      '<div class="note info" style="margin-top:13px">' + ICON.lock +
+        '<div><b>RACIで言うなら、AIに渡せるのは R（実行）だけです。</b>' +
+        'A（説明責任）は、工程を渡しても移りません。上のC軸は、まさに「Aが誰にあるか」を見ています。' +
+        '<b>Rは委譲できて、Aは委譲できない</b>——この線が、そのまま工程の線引きになります。</div></div>' +
       '<p style="margin-top:9px">工程比率のほうは、業務内での<b>相対的な長さの想定値</b>です。' +
       'ここは測定値ではないので、「いちばん重い工程」の設問と部下人数で補正をかけています。' +
       '合計は必ず100%になるように正規化しています。</p>' +
@@ -2780,7 +2829,7 @@ function renderResult(R){
   h += '<section class="sec" id="sec-plan">' +
     '<div class="sec-head"><span class="sec-no">05</span><h2>来週、この順番でやってください</h2></div>' +
     '<p class="sec-lede">読んで終わりにしないための手順です。合計で30分もかかりません。</p>' +
-    renderPlan(top) + '</section>';
+    renderPlan(top, R) + '</section>';
 
   /* 残りの業務 */
   if (rest.length) {
