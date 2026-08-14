@@ -252,9 +252,10 @@ img{ max-width:100%; }
 }
 .q-prog-txt{
   font-size:11.5px; font-weight:700; color:var(--muted);
-  margin-top:5px; display:flex; justify-content:space-between;
-  font-variant-numeric:tabular-nums;
+  margin-top:5px; display:flex; justify-content:space-between; gap:10px;
 }
+.q-prog-txt span:first-child{ font-variant-numeric:tabular-nums; white-space:nowrap; }
+.q-prog-txt span:last-child{ color:var(--accent-2); white-space:nowrap; }
 
 .q-body{ padding:30px 0 44px; }
 .q-tag{
@@ -869,7 +870,7 @@ html{ scroll-behavior:smooth; }
 <section id="s-intro" class="screen is-active">
   <div class="hero">
     <div class="wrap">
-      <span class="hero-badge"><span class="dot"></span>管理職向け・所要3分・登録不要</span>
+      <span class="hero-badge"><span class="dot"></span>管理職向け・所要3分・無料・登録不要</span>
       <h1>AIに渡すのは<br><span class="em">業務</span>じゃない、<span class="em">工程</span>です。</h1>
       <p class="lede">
         「うちの業務は文脈が多すぎてAIには無理だ」——その感覚は、たぶん正しい。<br>
@@ -1985,13 +1986,17 @@ function renderStep(){
   const body = el('q-body'), foot = el('q-foot');
   const total = state.queue.length;
 
-  /* 進捗 */
+  /* 進捗。「どこまで来たか」だけでなく「あと何問で何が出るか」を出す。
+     ゴールが見えていると、最後まで進みやすい。 */
   const pct = Math.round((state.idx / total) * 100);
   el('prog-fill').style.width = pct + '%';
   el('prog-txt').textContent = state.jobs.length
     ? 'Q' + (state.idx + 1) + ' / 全' + total + '問'
     : 'Q' + (state.idx + 1);
-  el('prog-pct').textContent = pct + '%';
+  const left = total - (state.idx + 1);
+  el('prog-pct').textContent = !state.jobs.length ? ''
+    : left === 0 ? '次で削減時間が出ます'
+    : 'あと' + left + '問で結果';
   el('btn-back').disabled = state.idx === 0;
 
   if (item.type === 'jobs') { renderJobSelect(body, foot); return; }
