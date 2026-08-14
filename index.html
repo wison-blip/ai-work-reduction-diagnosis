@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>工程で切る、AI引き継ぎ診断 ｜ 管理職の時間を取り戻す</title>
+<meta name="description" content="AIに渡すのは業務じゃない、工程です。管理職の5業務を工程に分解し、AIに任せられる工程と自分に残す工程の線を引きます。所要3分。">
+<meta property="og:title" content="工程で切る、AI引き継ぎ診断">
+<meta property="og:description" content="AIに渡すのは業務じゃない、工程です。あなたの1週間から、AIに渡せる時間を工程単位で算出します。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#12385f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312385f'/%3E%3Cpath d='M9 22V10h3.2l3.3 7.4L18.8 10H22v12h-2.6v-7.7L16.6 21h-2.2l-2.8-6.7V22z' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+/* ============================================================
+   工程で切る、AI引き継ぎ診断
+   デザイントークン（light 固定 / 管理職が経営会議で開いても浮かない配色）
+   ============================================================ */
+:root{
+  color-scheme: light;
+
+  --plane:      #eef1f5;   /* ページ地 */
+  --surface:    #ffffff;   /* カード面 */
+  --surface-2:  #f7f9fb;   /* 沈めた面 */
+  --surface-3:  #eaeff5;   /* さらに沈めた面 */
+
+  --ink:        #0f1720;   /* 主文字 */
+  --ink-2:      #4a555f;   /* 副文字 */
+  --muted:      #79848e;   /* 補助文字・軸ラベル */
+  --line:       #dfe5ec;   /* 罫線 */
+  --line-soft:  #edf1f5;
+
+  --navy:       #12385f;   /* ブランド（クローム） */
+  --navy-2:     #1c4f80;
+  --navy-ink:   #0b2743;
+
+  /* データ系列（dataviz 検証済み: 隣接CVD ΔE 24.7 / 通常視 ΔE 33.6 / 対白コントラスト 3:1 以上） */
+  --series-keep: #2a78d6;  /* slot1 blue  = 自分に残る時間 */
+  --series-ai:   #eb6834;  /* slot2 orange= AIに渡せる時間 */
+  --series-keep-soft:#e7f0fc;
+  --series-ai-soft:  #fdeee7;
+
+  /* ステータス（固定・系列色と兼用しない） */
+  --st-good:    #0ca30c;
+  --st-warn:    #fab219;
+  --st-crit:    #d03b3b;
+
+  --radius:     14px;
+  --radius-sm:  10px;
+  --shadow-1:   0 1px 2px rgba(15,23,32,.06), 0 1px 3px rgba(15,23,32,.05);
+  --shadow-2:   0 4px 16px rgba(15,23,32,.08), 0 1px 3px rgba(15,23,32,.05);
+  --shadow-3:   0 12px 40px rgba(15,23,32,.14);
+
+  --sans: system-ui, -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN",
+          "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+html{ -webkit-text-size-adjust:100%; }
+body{
+  font-family:var(--sans);
+  background:var(--plane);
+  color:var(--ink);
+  line-height:1.75;
+  font-size:16px;
+  letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4,p,ul,ol,figure{ margin:0; }
+ul,ol{ padding:0; list-style:none; }
+button{ font:inherit; color:inherit; cursor:pointer; border:0; background:none; }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible{
+  outline:3px solid var(--series-keep); outline-offset:2px; border-radius:6px;
+}
+img{ max-width:100%; }
+
+/* ---------- レイアウト ---------- */
+.wrap{ width:100%; max-width:760px; margin:0 auto; padding:0 16px; }
+.wrap-wide{ max-width:880px; }
+.screen{ display:none; }
+.screen.is-active{ display:block; animation:fadeUp .38s cubic-bezier(.2,.7,.3,1) both; }
+@keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
+@media (prefers-reduced-motion: reduce){
+  .screen.is-active{ animation:none; }
+  *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+}
+
+/* ============================================================
+   1. イントロ
+   ============================================================ */
+.hero{
+  background:
+    radial-gradient(1100px 460px at 82% -12%, rgba(235,104,52,.18), transparent 62%),
+    radial-gradient(900px 500px at 8% 0%, rgba(42,120,214,.20), transparent 60%),
+    linear-gradient(168deg, #12385f 0%, #0b2743 100%);
+  color:#fff;
+  padding:52px 0 40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; inset:auto 0 -1px 0; height:56px;
+  background:linear-gradient(to bottom, transparent, var(--plane));
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:12.5px; font-weight:700; letter-spacing:.09em;
+  padding:6px 13px; border-radius:999px;
+  background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.24);
+  color:#dbe7f4;
+}
+.hero-badge .dot{ width:6px; height:6px; border-radius:50%; background:var(--series-ai); }
+.hero h1{
+  font-size:clamp(27px, 6.6vw, 43px); line-height:1.28; font-weight:800;
+  letter-spacing:-.015em; margin:20px 0 0;
+}
+.hero h1 .em{
+  background:linear-gradient(transparent 66%, rgba(235,104,52,.55) 66%);
+  padding:0 2px;
+}
+.hero .lede{
+  margin-top:18px; font-size:clamp(14.5px,3.5vw,16.5px); line-height:1.85;
+  color:#c9d8e8; max-width:38em;
+}
+.hero-fail{ margin-top:24px; }
+.hero-fail-q{
+  position:relative; padding:14px 17px 14px 19px; border-radius:2px 10px 10px 2px;
+  background:rgba(0,0,0,.22); border-left:3px solid var(--series-ai);
+  font-size:14.5px; line-height:1.85; color:#e2ebf4;
+}
+.hero-fail-q b{ color:#ffb488; }
+.hero-fail-a{
+  margin-top:12px; padding-left:3px;
+  font-size:14px; line-height:1.85; color:#c9d8e8;
+}
+.hero-fail-a b{
+  color:#fff; background:linear-gradient(transparent 68%, rgba(235,104,52,.5) 68%);
+}
+.hero-scope{
+  margin-top:18px; font-size:13.5px; line-height:1.85; color:#a9c0d6;
+}
+.hero-scope b{ color:#e2ebf4; font-weight:700; }
+.hero-meta{ display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.hero-meta li{
+  font-size:12.5px; font-weight:600; color:#cfdcea;
+  background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.15);
+  padding:6px 11px; border-radius:8px;
+}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  font-weight:800; font-size:16.5px; letter-spacing:.01em;
+  padding:16px 30px; border-radius:12px;
+  background:linear-gradient(180deg,#f0763f,#e05a25);
+  color:#fff; box-shadow:0 5px 18px rgba(224,90,37,.4);
+  transition:transform .14s ease, box-shadow .14s ease, filter .14s ease;
+  width:100%; max-width:420px;
+}
+.btn:hover{ transform:translateY(-2px); box-shadow:0 9px 26px rgba(224,90,37,.46); }
+.btn:active{ transform:translateY(0); filter:brightness(.96); }
+.btn-ghost{
+  background:var(--surface); color:var(--navy); border:1.5px solid var(--line);
+  box-shadow:var(--shadow-1); font-size:15px; padding:13px 22px;
+}
+.btn-ghost:hover{ background:var(--surface-2); box-shadow:var(--shadow-2); }
+.btn-nav{
+  background:var(--navy); color:#fff; box-shadow:0 4px 14px rgba(18,56,95,.3);
+}
+.btn-nav:hover{ box-shadow:0 8px 22px rgba(18,56,95,.36); }
+.btn[disabled]{ opacity:.4; pointer-events:none; box-shadow:none; }
+
+.hero-cta{ margin-top:26px; }
+.hero-note{ margin-top:11px; font-size:12.5px; color:#9fb4c9; }
+
+/* イントロ下：3ステップ */
+.how{ padding:34px 0 46px; }
+.how-title{
+  font-size:12.5px; font-weight:800; letter-spacing:.12em; color:var(--muted);
+  text-align:center; margin-bottom:18px;
+}
+.how-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:11px; }
+.how-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:17px 15px; box-shadow:var(--shadow-1);
+}
+.how-card .n{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:25px; height:25px; border-radius:7px; background:var(--navy); color:#fff;
+  font-size:13px; font-weight:800; margin-bottom:9px;
+}
+.how-card h3{ font-size:14.5px; font-weight:800; line-height:1.5; }
+.how-card p{ font-size:12.5px; color:var(--ink-2); margin-top:6px; line-height:1.7; }
+@media (max-width:620px){
+  .how-grid{ grid-template-columns:1fr; }
+  .how-card{ display:flex; gap:13px; align-items:flex-start; padding:14px; }
+  .how-card .n{ margin-bottom:0; flex:none; }
+}
+
+/* ============================================================
+   2. 設問
+   ============================================================ */
+.q-head{
+  position:sticky; top:0; z-index:20;
+  background:rgba(238,241,245,.93);
+  backdrop-filter:saturate(180%) blur(12px);
+  -webkit-backdrop-filter:saturate(180%) blur(12px);
+  border-bottom:1px solid var(--line);
+  padding:11px 0 10px;
+}
+.q-head-in{ display:flex; align-items:center; gap:12px; }
+.q-back{
+  flex:none; width:36px; height:36px; border-radius:10px;
+  background:var(--surface); border:1px solid var(--line);
+  display:grid; place-items:center; color:var(--ink-2); box-shadow:var(--shadow-1);
+  transition:background .12s;
+}
+.q-back:hover{ background:var(--surface-2); }
+.q-back[disabled]{ opacity:.3; pointer-events:none; }
+.q-prog{ flex:1; }
+.q-prog-bar{ height:7px; border-radius:99px; background:var(--surface-3); overflow:hidden; }
+.q-prog-fill{
+  height:100%; border-radius:99px;
+  background:linear-gradient(90deg,var(--series-keep),var(--navy));
+  transition:width .42s cubic-bezier(.2,.8,.3,1); width:0;
+}
+.q-prog-txt{
+  font-size:11.5px; font-weight:700; color:var(--muted);
+  margin-top:5px; display:flex; justify-content:space-between;
+  font-variant-numeric:tabular-nums;
+}
+
+.q-body{ padding:30px 0 44px; }
+.q-tag{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:11.5px; font-weight:800; letter-spacing:.05em;
+  padding:4px 10px; border-radius:6px; margin-bottom:13px;
+  background:var(--series-keep-soft); color:#1b5698;
+}
+.q-tag.is-job{ background:var(--series-ai-soft); color:#a8431a; }
+.q-title{
+  font-size:clamp(20px,4.8vw,26px); font-weight:800; line-height:1.5;
+  letter-spacing:-.01em;
+}
+.q-help{
+  font-size:13.5px; color:var(--ink-2); margin-top:10px; line-height:1.8;
+  background:var(--surface-2); border-left:3px solid var(--line);
+  padding:10px 13px; border-radius:0 8px 8px 0;
+}
+.q-opts{ margin-top:22px; display:grid; gap:10px; }
+.opt{
+  display:flex; align-items:flex-start; gap:13px; width:100%; text-align:left;
+  background:var(--surface); border:1.5px solid var(--line); border-radius:var(--radius);
+  padding:15px 16px; box-shadow:var(--shadow-1);
+  transition:border-color .13s, box-shadow .13s, transform .13s, background .13s;
+}
+.opt:hover{ border-color:#b9cde6; box-shadow:var(--shadow-2); transform:translateY(-1px); }
+.opt.is-on{ border-color:var(--navy); background:#f4f8fd; box-shadow:0 0 0 3px rgba(42,120,214,.13); }
+.opt-mark{
+  flex:none; width:23px; height:23px; margin-top:1px; border-radius:50%;
+  border:2px solid #c3ceda; display:grid; place-items:center;
+  transition:background .13s, border-color .13s;
+}
+.opt.is-multi .opt-mark{ border-radius:7px; }
+.opt.is-on .opt-mark{ background:var(--navy); border-color:var(--navy); }
+.opt-mark svg{ opacity:0; transform:scale(.6); transition:opacity .13s, transform .13s; }
+.opt.is-on .opt-mark svg{ opacity:1; transform:scale(1); }
+.opt-txt{ flex:1; min-width:0; }
+.opt-label{ font-size:15.5px; font-weight:700; line-height:1.55; }
+.opt-sub{ font-size:12.5px; color:var(--ink-2); margin-top:4px; line-height:1.7; }
+.opt-badge{
+  display:inline-block; font-size:11px; font-weight:800; padding:2px 8px;
+  border-radius:5px; background:var(--series-ai-soft); color:#a8431a; margin-top:7px;
+}
+
+/* 業務選択カード */
+.job-grid{ margin-top:22px; display:grid; gap:10px; }
+.jobcard{
+  display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+  background:var(--surface); border:1.5px solid var(--line); border-radius:var(--radius);
+  padding:15px 16px; box-shadow:var(--shadow-1);
+  transition:border-color .13s, box-shadow .13s, transform .13s, background .13s;
+}
+.jobcard:hover{ border-color:#b9cde6; transform:translateY(-1px); box-shadow:var(--shadow-2); }
+.jobcard.is-on{ border-color:var(--navy); background:#f4f8fd; box-shadow:0 0 0 3px rgba(42,120,214,.13); }
+.jobcard-no{
+  flex:none; width:38px; height:38px; border-radius:11px;
+  background:var(--surface-3); color:var(--navy);
+  display:grid; place-items:center; font-size:17px; font-weight:800;
+  transition:background .13s, color .13s;
+}
+.jobcard.is-on .jobcard-no{ background:var(--navy); color:#fff; }
+.jobcard-txt{ flex:1; min-width:0; }
+.jobcard-name{ font-size:15.5px; font-weight:800; line-height:1.5; }
+.jobcard-meta{ font-size:12px; color:var(--muted); margin-top:3px; }
+.jobcard-check{
+  flex:none; width:23px; height:23px; border-radius:7px; border:2px solid #c3ceda;
+  display:grid; place-items:center; transition:background .13s, border-color .13s;
+}
+.jobcard.is-on .jobcard-check{ background:var(--navy); border-color:var(--navy); }
+.jobcard-check svg{ opacity:0; transform:scale(.6); transition:opacity .13s, transform .13s; }
+.jobcard.is-on .jobcard-check svg{ opacity:1; transform:scale(1); }
+
+.q-foot{
+  position:sticky; bottom:0; z-index:15;
+  background:linear-gradient(to top, var(--plane) 62%, rgba(238,241,245,0));
+  padding:18px 0 20px; margin-top:8px;
+}
+.q-foot .btn{ max-width:none; }
+.q-foot-hint{
+  text-align:center; font-size:12.5px; color:var(--muted); margin-top:9px;
+}
+.q-foot-hint kbd{
+  font-family:inherit; font-size:11px; font-weight:800; padding:1px 6px;
+  border-radius:5px; background:var(--surface); border:1px solid var(--line);
+  box-shadow:0 1px 0 var(--line); color:var(--ink-2);
+}
+@media (hover:none){ .q-foot-hint kbd, .q-foot-hint .kbd-only{ display:none; } }
+
+/* ============================================================
+   3. 計算中
+   ============================================================ */
+.calc{ min-height:78vh; display:grid; place-items:center; text-align:center; padding:40px 0; }
+.calc-ring{ position:relative; width:88px; height:88px; margin:0 auto 26px; }
+.calc-ring svg{ transform:rotate(-90deg); }
+.calc-ring circle{ fill:none; stroke-width:7; stroke-linecap:round; }
+.calc-ring .bg{ stroke:var(--surface-3); }
+.calc-ring .fg{
+  stroke:var(--series-ai); stroke-dasharray:226; stroke-dashoffset:226;
+  animation:ringFill 1.5s cubic-bezier(.3,.7,.3,1) forwards;
+}
+@keyframes ringFill{ to{ stroke-dashoffset:34; } }
+.calc h2{ font-size:19px; font-weight:800; }
+.calc-steps{ margin-top:20px; display:grid; gap:9px; justify-items:center; }
+.calc-step{
+  font-size:13.5px; color:var(--muted); opacity:0; transform:translateY(6px);
+  animation:stepIn .4s ease forwards; display:flex; align-items:center; gap:8px;
+}
+@keyframes stepIn{ to{ opacity:1; transform:none; } }
+.calc-step .tick{ color:var(--st-good); font-weight:900; }
+
+/* ============================================================
+   4. 結果
+   ============================================================ */
+.r-hero{
+  background:
+    radial-gradient(800px 380px at 88% -10%, rgba(235,104,52,.20), transparent 60%),
+    linear-gradient(168deg,#12385f 0%,#0b2743 100%);
+  color:#fff; padding:38px 0 34px; position:relative; overflow:hidden;
+}
+.r-hero-label{
+  font-size:12px; font-weight:800; letter-spacing:.13em; color:#9fb9d4;
+}
+.r-figure{
+  display:flex; align-items:baseline; gap:4px; flex-wrap:wrap;
+  margin-top:8px; line-height:1;
+}
+.r-figure .num{
+  font-size:clamp(60px,17vw,96px); font-weight:800; letter-spacing:-.045em;
+  background:linear-gradient(180deg,#fff,#bfd4e8);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.r-figure .unit{ font-size:clamp(21px,5vw,30px); font-weight:800; color:#dce8f4; }
+.r-figure-sub{ font-size:15px; color:#c3d5e6; margin-top:12px; font-weight:600; }
+.r-figure-sub b{ color:#fff; }
+.r-annual{
+  margin-top:16px; display:flex; flex-wrap:wrap; gap:9px;
+}
+.r-annual li{
+  font-size:13px; font-weight:700; color:#dbe7f4;
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.17);
+  padding:8px 13px; border-radius:9px;
+}
+.r-annual li b{ color:#fff; font-size:15.5px; }
+.r-honest{
+  margin-top:18px; padding:13px 15px; border-radius:var(--radius-sm);
+  background:rgba(250,178,25,.13); border:1px solid rgba(250,178,25,.4);
+  font-size:13px; line-height:1.8; color:#f2e3c4;
+  display:flex; gap:10px; align-items:flex-start;
+}
+.r-honest b{ color:#ffd98a; }
+.r-honest .ic{ flex:none; margin-top:2px; }
+
+.r-body{ padding:30px 0 60px; }
+
+/* --- 結論（3行サマリ） --- */
+.gist{
+  background:var(--surface); border:1.5px solid var(--series-ai);
+  border-radius:var(--radius); padding:19px 21px;
+  box-shadow:0 0 0 3px rgba(235,104,52,.1), var(--shadow-2);
+}
+.gist-label{
+  font-size:11.5px; font-weight:800; letter-spacing:.1em; color:var(--series-ai);
+  margin-bottom:12px;
+}
+.gist-list{ display:grid; gap:10px; counter-reset:g; }
+.gist-list li{
+  counter-increment:g; position:relative; padding-left:31px;
+  font-size:14.5px; line-height:1.8; color:var(--ink-2);
+}
+.gist-list li::before{
+  content:counter(g); position:absolute; left:0; top:.28em;
+  width:21px; height:21px; border-radius:6px; background:var(--navy); color:#fff;
+  font-size:11.5px; font-weight:800; display:grid; place-items:center;
+}
+.gist-list b{ color:var(--ink); font-weight:800; }
+.sec{ margin-top:34px; }
+.sec:first-child{ margin-top:0; }
+.sec-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:5px; flex-wrap:wrap; }
+.sec-no{
+  font-size:11.5px; font-weight:800; letter-spacing:.1em; color:var(--series-ai);
+}
+.sec h2{ font-size:20px; font-weight:800; letter-spacing:-.01em; line-height:1.45; }
+.sec-lede{ font-size:13.5px; color:var(--ink-2); margin-bottom:15px; line-height:1.8; }
+
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow-1); padding:19px 18px;
+}
+.card + .card{ margin-top:11px; }
+
+/* --- 内訳チャート（積み上げ横棒・pure CSS） --- */
+.legend{ display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px; }
+.legend-item{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:var(--ink-2); }
+.legend-swatch{ width:13px; height:13px; border-radius:4px; flex:none; }
+.chart-row + .chart-row{ margin-top:17px; padding-top:17px; border-top:1px solid var(--line-soft); }
+.chart-label{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:7px; }
+.chart-name{ font-size:13.5px; font-weight:700; line-height:1.5; }
+.chart-name .no{ color:var(--muted); font-weight:800; margin-right:4px; }
+.chart-total{ font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.bar-wrap{ display:flex; align-items:center; gap:10px; }
+.bar{ display:flex; height:26px; gap:2px; align-items:stretch; flex:none; }
+.bar-out{
+  font-size:11.5px; font-weight:700; color:var(--ink-2); white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.bar-out b{ color:var(--series-ai); }
+.bar-seg{
+  display:flex; align-items:center; justify-content:flex-end;
+  padding:0 7px; font-size:11.5px; font-weight:800; color:#fff;
+  white-space:nowrap; overflow:hidden; min-width:2px;
+  font-variant-numeric:tabular-nums;
+  transition:width .7s cubic-bezier(.2,.8,.3,1);
+}
+.bar-seg.keep{ background:var(--series-keep); border-radius:4px 0 0 4px; }
+.bar-seg.ai{ background:var(--series-ai); border-radius:0 4px 4px 0; justify-content:flex-start; }
+.bar-seg.only{ border-radius:4px; }
+.chart-foot{ font-size:11.5px; color:var(--muted); margin-top:12px; line-height:1.7; }
+
+/* --- 優先順位 --- */
+.pri{ display:grid; gap:10px; }
+.pri-card{
+  display:flex; gap:14px; align-items:flex-start;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px 17px; box-shadow:var(--shadow-1); position:relative; overflow:hidden;
+}
+.pri-card.is-top{
+  border:1.5px solid var(--series-ai);
+  box-shadow:0 0 0 3px rgba(235,104,52,.11), var(--shadow-2);
+  background:linear-gradient(180deg,#fffaf7,var(--surface) 62%);
+}
+.pri-rank{
+  flex:none; width:34px; height:34px; border-radius:10px;
+  display:grid; place-items:center; font-size:15px; font-weight:800;
+  background:var(--surface-3); color:var(--ink-2);
+}
+.pri-card.is-top .pri-rank{ background:var(--series-ai); color:#fff; }
+.pri-main{ flex:1; min-width:0; }
+.pri-name{ font-size:15px; font-weight:800; line-height:1.5; }
+.pri-why{ font-size:12.5px; color:var(--ink-2); margin-top:5px; line-height:1.75; }
+.pri-save{
+  flex:none; text-align:right; font-variant-numeric:tabular-nums;
+}
+.pri-save .v{ font-size:18px; font-weight:800; color:var(--series-ai); line-height:1.2; }
+.pri-save .l{ font-size:10.5px; color:var(--muted); font-weight:700; }
+.pri-flag{
+  display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.05em;
+  background:var(--series-ai); color:#fff; padding:2px 8px; border-radius:5px;
+  margin-bottom:6px;
+}
+@media (max-width:520px){
+  .pri-card{ flex-wrap:wrap; }
+  .pri-save{ width:100%; text-align:left; display:flex; align-items:baseline; gap:6px;
+             padding-left:48px; margin-top:-2px; }
+}
+
+/* --- 工程分解テーブル --- */
+.steps{ display:grid; gap:0; }
+.step-row{
+  display:grid; grid-template-columns:auto 1fr auto; gap:13px; align-items:start;
+  padding:14px 0; border-top:1px solid var(--line-soft);
+}
+.step-row:first-child{ border-top:0; padding-top:2px; }
+.step-n{
+  flex:none; width:24px; height:24px; border-radius:7px; margin-top:2px;
+  display:grid; place-items:center; font-size:12px; font-weight:800;
+  background:var(--surface-3); color:var(--ink-2); font-variant-numeric:tabular-nums;
+}
+.step-main{ min-width:0; }
+.step-name{ font-size:14.5px; font-weight:700; line-height:1.55; }
+.step-desc{ font-size:12.5px; color:var(--ink-2); margin-top:4px; line-height:1.75; }
+.step-why{
+  font-size:12.5px; margin-top:8px; padding:9px 12px; border-radius:8px;
+  background:var(--series-keep-soft); color:#17518f; line-height:1.75;
+  border-left:3px solid var(--series-keep);
+}
+.step-why b{ color:#0f3f74; }
+.step-right{ text-align:right; flex:none; }
+.verdict{
+  display:inline-block; font-size:11px; font-weight:800; letter-spacing:.02em;
+  padding:3px 9px; border-radius:6px; white-space:nowrap;
+}
+.verdict.ai{    background:var(--series-ai);  color:#fff; }
+.verdict.half{  background:#fdeee7; color:#a8431a; border:1px solid #f5c7ae; }
+.verdict.human{ background:var(--surface-3); color:var(--ink-2); border:1px solid var(--line); }
+.step-time{
+  font-size:11.5px; color:var(--muted); margin-top:6px; font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.step-time b{ color:var(--series-ai); font-size:12.5px; }
+.step-time .arrow{ color:var(--muted); margin:0 3px; }
+.step-rate{
+  font-size:10.5px; color:var(--muted); margin-top:4px; white-space:nowrap;
+  font-variant-numeric:tabular-nums; letter-spacing:.01em;
+}
+.step-rate .sep{ opacity:.5; margin:0 4px; }
+.step-rate .sens{
+  display:inline-block; margin-left:6px; padding:1px 5px; border-radius:4px;
+  background:var(--surface-3); color:var(--ink-2); font-weight:700; letter-spacing:0;
+}
+@media (max-width:560px){
+  .step-row{ grid-template-columns:auto 1fr; }
+  .step-right{ grid-column:2; text-align:left; margin-top:-4px; }
+  .step-time{ display:inline-block; margin-left:9px; margin-top:0; }
+}
+.steps-sum{
+  margin-top:6px; padding-top:14px; border-top:2px solid var(--line);
+  display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;
+}
+.steps-sum .l{ font-size:13.5px; font-weight:800; }
+.steps-sum .v{ font-size:15px; font-weight:800; font-variant-numeric:tabular-nums; }
+.steps-sum .v b{ color:var(--series-ai); font-size:20px; }
+
+/* --- 削れない工程 --- */
+.keepbox{
+  background:linear-gradient(180deg,#f4f8fd,var(--surface) 70%);
+  border:1px solid #cfe0f3; border-radius:var(--radius); padding:18px;
+}
+.keepbox h3{
+  font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px;
+  color:var(--navy-ink);
+}
+.keepbox ul{ margin-top:12px; display:grid; gap:11px; }
+.keepbox li{ font-size:13.5px; line-height:1.8; padding-left:20px; position:relative; color:var(--ink-2); }
+.keepbox li::before{
+  content:""; position:absolute; left:4px; top:.62em; width:7px; height:7px;
+  border-radius:2px; background:var(--series-keep);
+}
+.keepbox li b{ color:var(--ink); }
+
+/* --- プロンプト --- */
+.prompt{
+  border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  background:var(--surface); box-shadow:var(--shadow-1);
+}
+.prompt + .prompt{ margin-top:13px; }
+.prompt-head{
+  display:flex; align-items:center; gap:11px; padding:13px 15px;
+  background:var(--navy); color:#fff;
+}
+.prompt-step{
+  flex:none; font-size:10.5px; font-weight:800; letter-spacing:.08em;
+  background:rgba(255,255,255,.16); padding:3px 8px; border-radius:5px;
+}
+.prompt-title{ flex:1; min-width:0; font-size:14px; font-weight:800; line-height:1.45; }
+.copy{
+  flex:none; display:inline-flex; align-items:center; gap:6px;
+  font-size:12.5px; font-weight:800; padding:8px 13px; border-radius:8px;
+  background:var(--series-ai); color:#fff; transition:filter .13s, transform .13s;
+}
+.copy:hover{ filter:brightness(1.07); transform:translateY(-1px); }
+.copy.is-done{ background:var(--st-good); }
+.prompt-aim{
+  padding:12px 15px; background:var(--surface-2); border-bottom:1px solid var(--line);
+  font-size:12.5px; color:var(--ink-2); line-height:1.8;
+}
+.prompt-aim b{ color:var(--ink); }
+.prompt-aim ul{ margin-top:7px; display:grid; gap:5px; }
+.prompt-aim li{ padding-left:16px; position:relative; }
+.prompt-aim li::before{
+  content:""; position:absolute; left:3px; top:.65em; width:5px; height:5px;
+  border-radius:50%; background:var(--series-ai);
+}
+.prompt-body{
+  margin:0; padding:15px; max-height:290px; overflow:auto;
+  font-family:ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+              "Noto Sans Mono CJK JP", monospace;
+  font-size:12.5px; line-height:1.85; white-space:pre-wrap; word-break:break-word;
+  background:#fbfcfd; color:#1d2833; border:0;
+  -webkit-overflow-scrolling:touch;
+}
+.prompt-body::-webkit-scrollbar{ width:9px; }
+.prompt-body::-webkit-scrollbar-thumb{ background:#d3dbe4; border-radius:99px; }
+.prompt-fill{
+  background:#fff2cc; color:#7a5600; font-weight:700; padding:0 3px;
+  border-radius:3px; border-bottom:1.5px solid #e0b64a;
+}
+.prompt-foot{
+  padding:11px 15px; border-top:1px solid var(--line); background:var(--surface-2);
+  font-size:12px; color:var(--muted); line-height:1.7;
+}
+
+/* --- 来週の手順 --- */
+.plan{ display:grid; gap:10px; counter-reset:pl; }
+.plan-item{
+  display:flex; gap:13px; align-items:flex-start;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--radius-sm); padding:14px 15px; box-shadow:var(--shadow-1);
+}
+.plan-when{
+  flex:none; min-width:62px; text-align:center; font-size:11.5px; font-weight:800;
+  color:#fff; background:var(--navy); border-radius:7px; padding:5px 8px; margin-top:1px;
+}
+.plan-txt{ flex:1; min-width:0; font-size:13.5px; line-height:1.8; }
+.plan-txt b{ font-weight:800; }
+.plan-cost{ font-size:11.5px; color:var(--muted); margin-top:4px; }
+
+/* --- アコーディオン --- */
+.acc{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow-1); overflow:hidden;
+}
+.acc + .acc{ margin-top:10px; }
+.acc-btn{
+  display:flex; align-items:center; gap:13px; width:100%; text-align:left;
+  padding:15px 17px; transition:background .12s;
+}
+.acc-btn:hover{ background:var(--surface-2); }
+.acc-no{
+  flex:none; width:30px; height:30px; border-radius:9px; background:var(--surface-3);
+  color:var(--navy); display:grid; place-items:center; font-size:14px; font-weight:800;
+}
+.acc-txt{ flex:1; min-width:0; }
+.acc-name{ font-size:14.5px; font-weight:800; line-height:1.5; }
+.acc-meta{ font-size:12px; color:var(--muted); margin-top:2px; font-variant-numeric:tabular-nums; }
+.acc-chev{ flex:none; color:var(--muted); transition:transform .22s ease; }
+.acc.is-open .acc-chev{ transform:rotate(180deg); }
+.acc-panel{ display:none; padding:0 17px 19px; border-top:1px solid var(--line-soft); }
+.acc.is-open .acc-panel{ display:block; animation:fadeUp .28s ease both; }
+.acc-panel > *:first-child{ margin-top:16px; }
+
+/* --- 根拠の開示 --- */
+.calcbox{
+  background:var(--surface-2); border:1px solid var(--line); border-radius:var(--radius-sm);
+  padding:15px 16px; font-size:13px; line-height:1.85; color:var(--ink-2);
+}
+.calcbox h4{ font-size:13px; font-weight:800; color:var(--ink); margin-bottom:7px; }
+.calcbox + .calcbox{ margin-top:11px; }
+.formula{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:12px; background:var(--surface); border:1px solid var(--line);
+  border-radius:8px; padding:11px 13px; margin:9px 0; overflow-x:auto;
+  white-space:pre; color:var(--navy-ink); line-height:1.8;
+}
+.tbl{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:9px; }
+.tbl th,.tbl td{ padding:8px 9px; border-bottom:1px solid var(--line); text-align:left; }
+.tbl th{
+  font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.04em;
+  border-bottom:1.5px solid var(--line); white-space:nowrap;
+}
+.tbl td{ font-variant-numeric:tabular-nums; }
+.tbl td:first-child{ font-variant-numeric:normal; }
+.tbl tr:last-child td{ border-bottom:0; }
+.tbl-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.yourpick{ color:var(--series-ai); font-weight:800; }
+
+/* --- 注意ボックス --- */
+.note{
+  border-radius:var(--radius-sm); padding:14px 16px; font-size:13px; line-height:1.85;
+  display:flex; gap:11px; align-items:flex-start;
+}
+.note .ic{ flex:none; margin-top:2px; }
+.note b{ font-weight:800; }
+.note.warn{ background:#fff8e8; border:1px solid #f2d692; color:#6b4e08; }
+.note.crit{ background:#fdefef; border:1px solid #f0bcbc; color:#7d2020; }
+.note.info{ background:#f0f6fd; border:1px solid #cfe0f3; color:#1a4d85; }
+
+/* --- 締め --- */
+.closing{
+  background:linear-gradient(168deg,#12385f,#0b2743);
+  color:#fff; border-radius:var(--radius); padding:26px 24px;
+  box-shadow:var(--shadow-2); position:relative; overflow:hidden;
+}
+.closing::after{
+  content:""; position:absolute; right:-60px; top:-60px; width:200px; height:200px;
+  background:radial-gradient(circle, rgba(235,104,52,.28), transparent 68%);
+  pointer-events:none;
+}
+.closing-lead{
+  font-size:12px; font-weight:800; letter-spacing:.13em; color:#9fb9d4; margin-bottom:12px;
+}
+.closing-main{ font-size:16px; line-height:1.95; color:#e2ebf4; font-weight:600; }
+.closing-main b{
+  color:#fff; background:linear-gradient(transparent 68%, rgba(235,104,52,.5) 68%);
+}
+.closing-sub{
+  margin-top:17px; padding-top:16px; border-top:1px solid rgba(255,255,255,.17);
+  font-size:14px; line-height:1.9; color:#c3d5e6;
+}
+.closing-sub b{ color:#fff; }
+
+/* --- 結果フッター --- */
+.r-actions{ margin-top:36px; display:grid; gap:10px; }
+.r-actions .btn{ max-width:none; }
+.foot{
+  margin-top:40px; padding-top:22px; border-top:1px solid var(--line);
+  font-size:11.5px; color:var(--muted); line-height:1.9; text-align:center;
+}
+.foot b{ color:var(--ink-2); }
+
+/* --- トースト --- */
+.toast{
+  position:fixed; left:50%; bottom:26px; transform:translate(-50%,22px);
+  background:var(--ink); color:#fff; font-size:13.5px; font-weight:700;
+  padding:12px 22px; border-radius:99px; box-shadow:var(--shadow-3);
+  opacity:0; pointer-events:none; transition:opacity .22s, transform .22s; z-index:200;
+  max-width:calc(100vw - 32px); text-align:center;
+}
+.toast.is-on{ opacity:1; transform:translate(-50%,0); }
+
+.sr{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
+/* --- 印刷 --- */
+@media print{
+  body{ background:#fff; }
+  .q-head,.q-foot,.r-actions,.toast,.copy,.foot{ display:none !important; }
+  .r-hero{ background:#12385f !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .acc-panel{ display:block !important; }
+  .prompt-body{ max-height:none; }
+  .card,.acc,.prompt{ break-inside:avoid; box-shadow:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     SCREEN 1 : イントロ
+     ========================================================= -->
+<section id="s-intro" class="screen is-active">
+  <div class="hero">
+    <div class="wrap">
+      <span class="hero-badge"><span class="dot"></span>管理職向け・所要3分・登録不要</span>
+      <h1>AIに渡すのは<br><span class="em">業務</span>じゃない、<span class="em">工程</span>です。</h1>
+      <p class="lede">
+        「うちの業務は文脈が多すぎてAIには無理だ」——その感覚は、たぶん正しい。<br>
+        でもそれは<b style="color:#fff">業務まるごと</b>を渡そうとしたときの話です。
+        業務を工程に割ると、文脈が要る工程と、要らない工程に分かれます。
+        この診断は、その線を引きます。
+      </p>
+      <div class="hero-fail">
+        <p class="hero-fail-q">
+          「週報を全部コピーして、ChatGPTに<b>『要約して』</b>と入れた。<br>
+          返ってきたのは、当たり障りのない文章。結局、自分で書き直した。」
+        </p>
+        <p class="hero-fail-a">
+          <b>それはAIの限界ではなく、工程の切り方の問題です。</b>
+          要約とは、全員分を平らにならす作業。だから当たり障りのないものが返ってきます。
+          この診断は、そこで何を頼むべきだったかまで出します。
+        </p>
+      </div>
+      <p class="hero-scope">
+        対象は<b>週報の取りまとめ／会議資料／評価コメント／稟議書／部門数字の説明</b>の5業務。
+        担当しているものだけ選べば、その業務の設問だけが出ます。
+      </p>
+      <ul class="hero-meta">
+        <li>◯ 設問 6〜13問（選んだ業務ぶんだけ）</li>
+        <li>◯ 工程ごとの削減根拠を全部開示</li>
+        <li>◯ 明日そのまま使えるプロンプト付き</li>
+      </ul>
+      <div class="hero-cta">
+        <button class="btn" id="btn-start">
+          診断をはじめる
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        </button>
+        <p class="hero-note">回答はブラウザの中だけで処理されます。送信も保存もされません。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap how">
+    <p class="how-title">この診断がやること</p>
+    <div class="how-grid">
+      <div class="how-card">
+        <span class="n">1</span>
+        <div>
+          <h3>工程に割る</h3>
+          <p>1業務を5〜6工程に分解。あなたが答えた実測時間を工程比率で割り付けます。</p>
+        </div>
+      </div>
+      <div class="how-card">
+        <span class="n">2</span>
+        <div>
+          <h3>線を引く</h3>
+          <p>工程ごとにAI代替率を当て、「渡す／半分渡す／自分でやる」を判定します。</p>
+        </div>
+      </div>
+      <div class="how-card">
+        <span class="n">3</span>
+        <div>
+          <h3>来週の手を出す</h3>
+          <p>最優先の1業務について、工程・根拠・コピペ用プロンプトまで出します。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SCREEN 2 : 設問
+     ========================================================= -->
+<section id="s-quiz" class="screen">
+  <header class="q-head">
+    <div class="wrap q-head-in">
+      <button class="q-back" id="btn-back" aria-label="前の設問へ戻る">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H6M11 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="q-prog">
+        <div class="q-prog-bar"><div class="q-prog-fill" id="prog-fill"></div></div>
+        <div class="q-prog-txt">
+          <span id="prog-txt">Q1</span>
+          <span id="prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="wrap q-body" id="q-body" aria-live="polite"></div>
+  <div class="wrap q-foot" id="q-foot"></div>
+</section>
+
+<!-- =========================================================
+     SCREEN 3 : 計算中
+     ========================================================= -->
+<section id="s-calc" class="screen">
+  <div class="wrap calc">
+    <div>
+      <div class="calc-ring">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle class="bg" cx="44" cy="44" r="36"></circle>
+          <circle class="fg" cx="44" cy="44" r="36"></circle>
+        </svg>
+      </div>
+      <h2>工程に割って、線を引いています</h2>
+      <div class="calc-steps" id="calc-steps"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SCREEN 4 : 結果
+     ========================================================= -->
+<section id="s-result" class="screen">
+  <div class="r-hero" id="r-hero"></div>
+  <div class="wrap wrap-wide r-body" id="r-body"></div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ============================================================================
+   工程で切る、AI引き継ぎ診断
+   ----------------------------------------------------------------------------
+   設計の中心：
+     「業務を何割削れるか」ではなく「工程ごとに何割削れるか」を積み上げる。
+     ユーザーが申告した実測時間 T を工程比率 share で割り付け、
+     工程ごとの AI 代替率 aiRate を掛けて合算する。
+     こうすると「削れない工程」を数式の中で名指しできる。
+
+       工程iの削減 = T × share_i × aiRate_i × 習熟係数 × (機密係数 if 要貼付工程)
+       業務の削減  = Σ 工程iの削減
+
+   外部APIは一切使わない。すべてブラウザ内で判定する。
+   ========================================================================= */
+
+/* ============================================================================
+   [1] 係数の定義
+   ------------------------------------------------------------------------
+   すべての係数に「なぜその値か」を添える。根拠のない数字を置かない。
+   ========================================================================= */
+
+/* 習熟係数：指示の作り方に慣れているほど、同じ工程でも実際に削れる割合が上がる。
+   1.0 を「指示の型をひととおり持っている人」として、そこからの相対値で置く。 */
+const SKILL = {
+  none:  { k:0.70, label:'ほとんど使ったことがない' },
+  tried: { k:0.85, label:'試したが期待外れだった' },
+  some:  { k:0.95, label:'週に何度か使っている' },
+  daily: { k:1.05, label:'毎日使っている' }
+};
+
+/* 機密係数：社内の生成AI利用ルール。
+   「実物を貼り付ける工程」だけに掛ける。骨子作りなど中身を貼らない工程には掛けない。 */
+const CONF = {
+  official: { k:1.00, label:'会社契約のAIがあり業務利用OK' },
+  personal: { k:0.92, label:'個人アカウント・ルールは曖昧' },
+  masked:   { k:0.78, label:'実名や数字は伏せる必要がある' },
+  banned:   { k:0.55, label:'社内規程で業務利用が禁止' }
+};
+
+/* 着手しやすさ係数：優先順位づけに使う。
+   削減時間だけで並べると「半期に1回」の業務が不当に上位に来ないため、
+   「次にその業務が来るまでの近さ」と「工程の定型度」で重みを付ける。 */
+const EASE_NOTE = '削減時間 × 着手しやすさ（次の発生までの近さ／工程の定型度）';
+
+const VERDICT = {
+  ai:    { label:'AIに渡す',   cls:'ai'    },
+  half:  { label:'半分渡す',   cls:'half'  },
+  human: { label:'自分でやる', cls:'human' }
+};
+/* 判定のしきい値：AI代替率 0.60 以上=渡す / 0.25〜0.59=半分渡す / 0.25 未満=自分でやる */
+function verdictOf(rate){ return rate >= 0.60 ? 'ai' : rate >= 0.25 ? 'half' : 'human'; }
+
+/* ============================================================================
+   [2] 業務データ（5業務）
+   ------------------------------------------------------------------------
+   share  : その工程が業務全体の所要時間に占める比率。合計 1.00
+   aiRate : その工程のAI代替率。0 = 削れない工程
+   sens   : true = 実物（週報・人事情報・数字）を貼り付ける必要がある工程
+            → 機密係数の影響を受ける
+   ========================================================================= */
+
+const JOBS = [
+/* ───────────────────────── ① 週報・日報の取りまとめ ───────────────────────── */
+{
+  id:'weekly', no:'①', name:'部下の週報・日報の取りまとめ', short:'週報の取りまとめ',
+  freq:'週次', occLabel:'毎週', perWeek:1, ease:0.95, depth:'deep',
+  easeWhy:'毎週来るので、直した効果がその週から出る',
+  nextIn:'次の締めは平均3日後',
+  steps:[
+    { n:'提出の催促と収集',        d:'未提出者に声をかけ、バラバラの書式を揃える',
+      share:.12, aiRate:.00, sens:false,
+      why:'ここはAIの出番ではありません。<b>提出テンプレートを固定して締切前にリマインドを飛ばす</b>ほうが、AIに投げるより確実に早い。仕組みで解く工程なので、<b>削減ゼロで固定</b>しています。' },
+    { n:'全員分を読んで把握する',  d:'部下全員分に目を通し、何が起きているかを頭に入れる',
+      share:.20, aiRate:.50, sens:true,
+      why:'読む量は圧縮できますが、<b>目を通す行為そのものは残ります</b>。要約だけ読んで報告を書くと、原文にあった一言を見落とします。' },
+    { n:'論点を拾う・異常に気づく',d:'誰が詰まっているか、先週から何が変わったかを見抜く',
+      share:.15, aiRate:.30, sens:true,
+      why:'AIは<b>候補を並べるところまで</b>。「調整中」が順調な調整なのか先方ともめているのかは、先週その部下と話したあなたの記憶の側にあります。' },
+    { n:'報告用の文章にまとめる',  d:'上司・全体共有向けのサマリを書く',
+      share:.33, aiRate:.80, sens:true,
+      why:'<b>この業務で最も削れる工程</b>。材料さえ揃っていれば、文章化は形式作業です。ここを丸ごと渡せるかどうかが削減時間の大半を決めます。' },
+    { n:'部下一人ひとりに返す',    d:'コメント・次の指示を書いて返信する',
+      share:.15, aiRate:.45, sens:true,
+      why:'文面の下書きは作れますが、<b>「この部下には今週は強く言わない」という判断</b>は渡せません。下書きを叩き台にする使い方が現実的です。' },
+    { n:'送付・共有',              d:'メール送信、共有フォルダへの格納',
+      share:.05, aiRate:.00, sens:false,
+      why:'AIではなく定型化の話です。送り先と件名の型を決めておけば済みます。<b>削減ゼロで固定</b>しています。' }
+  ],
+  keep:[
+    '<b>「誰が詰まっているか」の判断。</b>週報に書いてあるのは「調整中です」の五文字だけです。それが順調な調整なのか、先方と揉めているのかを分けるのは、先週その部下と立ち話した記憶。AIは文章しか見ていません。',
+    '<b>催促。</b>これはAIの仕事ではありません。提出テンプレを固定して締切前に自動リマインドを飛ばす——仕組みで解く工程です。AIに投げても1分も減りません。',
+    '<b>部下への返し方の判断。</b>同じ指摘でも、いま強く言っていい相手とそうでない相手がいます。文面は作れても、その線引きは渡せません。'
+  ],
+  plan:[
+    { when:'締め日',   txt:'週報が集まったら、<b>STEP1のプロンプトに全員分をそのまま貼る</b>。整形も要約もせず、原文のままでいい。', cost:'所要 約3分' },
+    { when:'その直後', txt:'出てきた「材料」を上から読み、<b>あなたの判断を3行だけ書き足す</b>。「A案件は先方都合だから問題なし」「Bさんは要フォロー」——ここがあなたの残す工程。', cost:'所要 約10分' },
+    { when:'そのあと', txt:'<b>判断メモごとSTEP2に渡して報告文を作る。</b>手直しは1〜2箇所で済みます。', cost:'所要 約5分' }
+  ],
+  invest:'初回だけ、STEP1の出力を見てフォーマットの行を2〜3個あなたの職場の言い方に書き換えてください。その20分が唯一の初期投資です。2回目からはコピペだけになります。',
+  prompts:[
+    { tag:'STEP 1', title:'週報を「判断材料」に変える（要約させない）',
+      aim:[
+        '<b>「要約して」と頼むと当たり障りのない文章が返る</b>のは当然で、要約とは全員分を平らにならす作業だからです。だから要約させず、<b>「遅れ」「変化」「サイン」という引っかかりだけを名指しで拾わせて</b>います。',
+        '<b>引用を必須にしています。</b>AIの作り話を防げるうえ、あなたが原文に戻って確かめられます。',
+        '<b>「判断は私がする」と明記しています。</b>AIは放っておくと結論を出したがる。その判断こそ、あなたが残す工程です。'
+      ],
+      foot:'※このプロンプトは「工程②通読」と「工程③論点抽出」を担当します。工程③は半分しか渡していないので、出てきた材料には必ずあなたの目を通してください。',
+      body:function(c){ return `あなたは、部下${c.team}名を持つ課長の補佐役です。
+これから、今週提出された週報の原文を貼ります。
+
+【依頼】
+週報を読み、私が「上司への報告」と「部下への声かけ」を判断するための"材料"を作ってください。
+判断そのものは私がします。あなたは材料の整理までで止めてください。
+
+【出力フォーマット】この見出しと順序を守ること
+■1. 今週の要点（3行以内／各行40字以内）
+■2. 計画から遅れている項目
+　　・誰の／どの案件／どのくらい遅れているか
+　　・そう読み取れる根拠を、週報から一文そのまま引用する
+■3. 先週から状況が変わったもの
+　　（先週分を貼っていない場合は「先週分なし」とだけ書く）
+■4. 助けを求めているサイン
+　　・明示的な相談だけでなく、「確認待ち」「調整中」が続いているなどの停滞シグナルも拾う
+　　・誰の／何が／どこからそう読めるか（引用付き）
+■5. 私が本人に確認すべきこと（3つまで／そのまま聞ける問いの形で）
+
+【禁止事項】
+・週報に書かれていないことを推測で補わない。分からないものは「週報からは不明」と書く
+・「引き続き対応します」「順調です」のような、読んでも何も分からない要約をしない
+・励ましやアドバイスを書かない。事実と引用だけでいい
+・「問題ない／問題あり」の判断を、私の代わりに下さない
+
+【前提】
+この材料をもとに、私が${c.reader}向けの報告文を書きます。社内の専門用語はそのまま残してください。
+${c.confLine}
+──────── ここから週報原文 ────────
+%%（${c.team}名分の週報を、整形せずそのまま貼り付ける）%%`; } },
+
+    { tag:'STEP 2', title:'材料 ＋ あなたの判断 → 報告文にする',
+      aim:[
+        '<b>1本目で「材料」、2本目で「文章」と分けています。</b>材料抽出と文章化は別の工程で、そのあいだにあなたの判断が挟まるからです。1本で済ませようとすると、判断を入れる隙間がなくなります。',
+        '<b>「私の判断メモ」欄が、あなたの残す工程です。</b>ここを空のまま渡すと、また当たり障りのない文章が返ってきます。逆にここを3行埋めるだけで、出力は別物になります。',
+        '<b>「〜と思われます」を禁止しています。</b>AIが曖昧な推測を混ぜると、そこを上司に突かれます。事実なのかあなたの見立てなのかを、文中で区別させています。'
+      ],
+      foot:'※このプロンプトは「工程④報告文の作成」を担当します。AI代替率80%と最も高く、削減時間の大半はここから出ています。',
+      body:function(c){ return `先ほど整理してもらった材料をもとに、${c.reader}に出す週次報告を書いてください。
+
+【私の判断メモ】※ここは私が埋めます。この内容を最優先で反映してください
+・特に上げたいこと：%%（例：A社の件は先方都合の遅れなので、こちらの責任ではないと明記したい）%%
+・触れなくていいこと：%%（例：Bさんの体調の件は書かない）%%
+・私の見立て：%%（例：来週いっぱいで巻き返せる見込み。追加リソースは不要）%%
+
+【条件】
+・全体で400字以内。前置きは不要。1行目から本題に入る
+・構成は次の3ブロックだけにする
+　(1) 今週の結論（2行）
+　(2) 動いた点／滞っている点（箇条書き・各1行）
+　(3) 判断を仰ぎたいこと／報告だけのこと（この2つを明示的に分ける）
+・数字は、材料に出てきたものだけを使う。ないものは書かない
+・「〜と思われます」「〜の見込みです」を使わない。事実か、私の判断かを区別して書く
+・敬体（です・ます）。読み手は${c.reader}
+
+【出力後】
+最後に「私の判断メモがないと書けなかった箇所」を1〜2行で挙げてください。
+次回そこを先に埋めれば、やり取りが1往復減ります。`; } }
+  ]
+},
+
+/* ───────────────────────── ② 会議資料・議題の作成 ───────────────────────── */
+{
+  id:'meeting', no:'②', name:'会議資料・議題の作成', short:'会議資料の作成',
+  freq:'週次', occLabel:'毎週', perWeek:1, ease:0.90, depth:'deep',
+  easeWhy:'毎週来る。ただし「何を決める会議か」を詰める工程が先に要る',
+  nextIn:'次の会議まで平均4日',
+  steps:[
+    { n:'何を決める会議かを決める', d:'目的・ゴール・落としどころを固める',
+      share:.15, aiRate:.15, sens:false,
+      why:'<b>ここが資料作成時間の総量を決めています。</b>決めたいことが曖昧なままAIに「アジェンダを作って」と頼むと、議題が5つに増えて資料も膨らみます。代替率15%は「言語化の壁打ち相手」としてのぶんで、<b>1つに絞る判断そのものは渡せません</b>。' },
+    { n:'情報・数字を集める',       d:'必要なデータを各所から引っ張ってくる',
+      share:.20, aiRate:.25, sens:false,
+      why:'<b>「何を集めるべきか」のリスト出しは渡せます</b>が、社内のどこにあるかを知っているのはあなたです。集める行為自体は残ります。' },
+    { n:'アジェンダ・骨子を作る',   d:'議題の並べ方、時間配分、配布資料の設計',
+      share:.15, aiRate:.80, sens:false,
+      why:'<b>目的さえ書けば、構成は渡せます。</b>しかも中身の数字を貼らずに済むので、機密ルールが厳しい環境でも真っ先に着手できる工程です。' },
+    { n:'資料の中身を書く',         d:'各ページの文章・説明・想定質問',
+      share:.32, aiRate:.70, sens:true,
+      why:'<b>最大の工程で、7割渡せます。</b>ただし数字はプレースホルダのまま出させて、あとから自分で埋めるのが安全です。' },
+    { n:'数字・事実の突き合わせ',   d:'資料に載る数字を元データで検算する',
+      share:.10, aiRate:.00, sens:false,
+      why:'<b>1分も渡せません。</b>AIは平気で数字を作ります。ここを削ると会議中に指摘され、資料ごと作り直しになります。削減時間ゼロで固定しています。' },
+    { n:'体裁・見た目を整える',     d:'書式統一、フォント、ページ番号',
+      share:.08, aiRate:.45, sens:false,
+      why:'テキストの整形は渡せます。スライドの見た目調整はツール側の機能に任せるほうが早い部分です。' }
+  ],
+  keep:[
+    '<b>何を決める会議かを決める工程。</b>ここを飛ばしてAIに投げると、それらしい議題が5つ並んだ、何も決まらない会議の資料が出てきます。1つに絞るのは人間の判断です。',
+    '<b>数字と事実の突き合わせ。</b>AIは自信たっぷりに数字を作ります。資料に載る数字は、あなたが元データに戻って一つずつ確かめる工程が必ず残ります。',
+    '<b>反対されそうな相手の顔を思い浮かべる工程。</b>「あの部長はコストの話に必ず食いつく」——これは社内の記憶で、どこにも文章化されていません。AIには渡せませんが、<b>プロンプトに一行書き足すことで反映はできます。</b>'
+  ],
+  plan:[
+    { when:'会議の3日前', txt:'<b>STEP1で骨子を作る。</b>このとき「この会議で決めたいこと」を1つだけ書く。ここを2つ書いた時点で、会議は失敗します。', cost:'所要 約8分' },
+    { when:'同日',        txt:'骨子に出てきた<b>「想定される反対意見」を見て、足りない材料を集めに行く</b>。資料を書き始める前に気づけるので、作り直しが減ります。', cost:'所要 約15分' },
+    { when:'会議の前日',  txt:'<b>STEP2で本文を書かせる。</b>数字は［数字：出典］のまま出させて、最後に自分で埋める。埋める作業が、そのまま検算工程になります。', cost:'所要 約20分' }
+  ],
+  invest:'初回は、あなたの職場の会議の型（時間・出席者・よくある反対意見）をプロンプトに書き込んでください。1回書けば、次回からはその部分を使い回せます。',
+  prompts:[
+    { tag:'STEP 1', title:'決まる会議の骨子を作る',
+      aim:[
+        '<b>「決めたいことを1つに絞る」を冒頭に置いています。</b>会議資料が膨らむ原因はほぼこれで、目的が2つある会議は資料も2倍になります。',
+        '<b>「時間が押したら削る議題」を先に出させています。</b>当日その場で判断しなくて済むようにするためです。',
+        '<b>この指示の本命は「反対意見を3つ、先に出させる」ところです。</b>資料の作り直しが一番減るのがここ。会議のあとで言われるより、作る前に言われたほうが安い。'
+      ],
+      foot:'※このプロンプトは「工程③骨子作り」を担当します。中身の数字を貼らずに使えるので、生成AIの利用ルールが厳しい環境でも最初に試せる工程です。',
+      body:function(c){ return `来週の会議の骨子を作ってください。
+
+【この会議の前提】※私が埋めます
+・会議名：%%（例：週次の部門定例）%%
+・出席者：%%（例：部長、他課の課長2名、私）%%
+・持ち時間：%%（例：60分）%%
+・この会議で決めたいこと（必ず1つに絞る）：%%（例：来期の増員1名について部長の承認を得る）%%
+・決まらないと困ること：%%（例：採用の募集開始が1か月遅れる）%%
+・出席者が過去に指摘してきたこと：%%（例：部長は費用対効果の根拠が弱いと必ず言う）%%
+
+【依頼】
+上記をもとに、次の形式でアジェンダを作ってください。
+1. 冒頭3行で言う「この会議のゴール」
+2. 議題（最大4つ）。各議題に「所要時間」と「決めることか、共有だけか」を明記する
+3. 議題ごとに、事前に配っておくべき情報
+4. 想定される反対意見・懸念を3つ。それぞれに「準備しておくべき材料」を添える
+5. 時間が押した場合に削る議題を、優先度の低い順に並べる
+
+【禁止事項】
+・「意見交換」「情報共有」のような、何が終われば終わりか分からない議題名を使わない
+・議題を5つ以上に増やさない。増やしたくなったら「別の会議に分けるべき」と指摘する
+・私が書いていない社内事情を推測で足さない
+
+【読み手】この資料を最後に読むのは${c.reader}です。`; } },
+
+    { tag:'STEP 2', title:'資料本文を書く（数字は勝手に作らせない）',
+      aim:[
+        '<b>［数字：出典］というプレースホルダを置かせています。</b>AIに数字を書かせないための仕掛けです。空欄が残るので、埋める作業がそのまま検算工程（＝削れない工程）になります。',
+        '<b>「このページで言いたいこと」を各ページ冒頭に1行で置かせています。</b>これがない資料は、読み手が結論を探しながら読むことになります。',
+        '<b>1項目40字・最大5項目という上限を課しています。</b>上限がないとAIは書きすぎ、結局あなたが削る作業が発生します。'
+      ],
+      foot:'※このプロンプトは「工程④資料本文」を担当します。AI代替率70%。残りの30%は、あなたが数字を埋め、社内の言い回しに直す部分です。',
+      body:function(c){ return `先ほどの骨子の【議題◯】について、資料の本文を書いてください。
+
+【条件】
+・1議題1ページ。ページの一番上に「このページで言いたいこと」を1行で置く
+・本文は箇条書き。1項目は40字以内、最大5項目
+・数字を書く場所には ［数字：出典］ とプレースホルダを置き、数字を自分で作らない
+・結論 → 理由 → 補足 の順に書く。背景説明から始めない
+・${c.reader}が知らない可能性がある前提には、括弧書きで一言添える
+
+【出力形式】
+ページタイトル：
+このページで言いたいこと（1行）：
+・
+・
+・
+（想定質問）Q： ／ A：
+
+【禁止事項】
+・私が渡していない数字・固有名詞を書かない
+・「効率化が期待されます」のような、測れない表現を使わない。測り方まで書く
+・1ページに議題を2つ入れない
+
+【出力後】
+最後に「このページで私が埋める必要がある箇所」を一覧にしてください。`; } }
+  ]
+},
+
+/* ───────────────────────── ③ 部下の評価コメント作成 ───────────────────────── */
+{
+  id:'review', no:'③', name:'部下の評価コメント作成', short:'評価コメント',
+  freq:'半期', occLabel:'半期に1回', perWeek:1/26, ease:0.70, depth:'light',
+  easeWhy:'半期に1回。次の機会まで間があるので、いま練習しにくい',
+  nextIn:'次の評価期まで最大6か月',
+  steps:[
+    { n:'半期の事実を思い出す',       d:'この半年、その部下が何をやったかを棚卸しする',
+      share:.30, aiRate:.25, sens:true,
+      why:'<b>実はここが一番時間を食っています。</b>思い出す行為そのものは渡せません。代替率25%は、あなたが書き出した断片的なメモを整理させる部分ぶんです。ここに効くのは期中の3行メモ——診断の外の話ですが、いちばん効きます。' },
+    { n:'評価の格付けを決める',       d:'A／B＋／Bなどの区分を判断する',
+      share:.12, aiRate:.00, sens:false,
+      why:'<b>1分も渡せませんし、渡してはいけません。</b>人事上の責任があなたにある工程です。削減時間ゼロで固定しています。' },
+    { n:'コメント本文を書く',         d:'評価区分に沿った文章を組み立てる',
+      share:.33, aiRate:.75, sens:true,
+      why:'<b>事実と評価区分さえ決まっていれば、文章化は渡せます。</b>ここが最大の削減源です。' },
+    { n:'表現を推敲する',             d:'角が立たない言い回しに整える',
+      share:.15, aiRate:.60, sens:true,
+      why:'言い換えの候補出しは得意な領域です。ただし<b>「この人にはこの言い方だと刺さる」の最終判断</b>は残ります。' },
+    { n:'全員分のトーンを揃える',     d:'不公平に見えないか、書きすぎがないかを点検する',
+      share:.10, aiRate:.50, sens:true,
+      why:'全員分を並べて「Aさんだけ評価が甘く読める」を検出させるのは有効です。ただし直すかどうかはあなたの判断です。' }
+  ],
+  keep:[
+    '<b>評価の格付けそのもの。</b>BかB＋かを決めるのは人事上の責任です。ここは1分も渡せませんし、渡してはいけません。',
+    '<b>半期の事実を思い出す工程。</b>ここが最大の時間食いですが、AIは思い出せません。効くのは期中の3行メモです——毎月末に部下1人3行だけ書き残しておくと、次の評価期にこの工程が半分になります。',
+    '<b>本人の受け取り方の予測。</b>同じ「もう少し主体性を」でも、刺さる書き方は相手によって違います。文面は作れても、誰にどの言い方をするかは渡せません。'
+  ],
+  plan:[
+    { when:'評価期の前', txt:'<b>まず部下1名分だけで試す。</b>いきなり8名分やらない。事実欄を埋める手間の実感を先に掴みます。', cost:'所要 約15分' },
+    { when:'そのあと',   txt:'出力の最後に付く<b>「事実の裏づけが弱い箇所」を見る。</b>そこがあなたの記憶の穴です。本人や周囲に確認してから残りを進めます。', cost:'所要 約10分' },
+    { when:'今日から',   txt:'<b>毎月末に、部下1人あたり3行のメモを残す。</b>これが次の評価期に最も効きます。この診断で出た削減時間の外側にある、いちばん大きい削減です。', cost:'月あたり 約10分' }
+  ],
+  invest:'このプロンプトは「事実欄」を埋めないと機能しません。埋める手間は残りますが、それは元々あなたがやっていた棚卸しの工程です。増えてはいません。',
+  prompts:[
+    { tag:'PROMPT', title:'評価コメントの下書きを作る（材料は自分で出す）',
+      aim:[
+        '<b>「事実欄」を必須にし、それ以外を材料にさせません。</b>評価コメントでAIが最も危険なのは、それらしい美辞麗句を勝手に足すこと。足りない箇所は【要追記】で止めさせています。',
+        '<b>「積極性がある」のような誰にでも当てはまる形容を禁止しています。</b>この手の言葉が入った瞬間、部下は「見られていない」と感じます。必ず出来事に紐づけさせます。',
+        '<b>出力の最後に「事実の裏づけが弱い箇所」を自己申告させています。</b>そこがあなたの記憶の穴です。文章の品質チェックではなく、あなたの棚卸し漏れの検出に使っています。'
+      ],
+      foot:'※このプロンプトは「工程③コメント本文」「工程④推敲」を担当します。工程①（事実の棚卸し）と工程②（格付け）は、あなたが先に済ませておく必要があります。',
+      body:function(c){ return `部下1名分の評価コメントの下書きを作ってください。
+
+【この部下の半期の事実】※私が書きます。ここが唯一の材料です
+・担当した仕事：%%（例：新規顧客向けの提案、既存3社の運用）%%
+・達成できたこと（数字があれば数字で）：%%（例：新規2社受注、目標比110%）%%
+・できなかったこと・課題：%%（例：見積の提出が平均3日遅れた）%%
+・周囲から聞こえてきたこと：%%（例：他課から、依頼への反応が早いと言われた）%%
+・本人が今期こだわっていたこと：%%（例：一人で完結させることにこだわっていた）%%
+
+【評価の枠】※これも私が決めます
+・評価区分：%%（例：B＋／期待をやや上回る）%%
+・会社の評価軸：%%（例：成果／プロセス／協働）%%
+
+【依頼】
+上の事実だけを使って、次の3ブロックで300字程度のコメントを書いてください。
+(1) 今期、評価できる点（事実 → それがなぜ評価に値するか）
+(2) 課題として伝える点（事実 → 次期に何を変えてほしいか）
+(3) 次期に期待すること（具体的な行動のレベルで）
+
+【禁止事項】
+・私が書いていない事実を足さない。材料が足りない箇所は「【要追記：〜】」と書いて、そこで止める
+・「積極性がある」「コミュニケーション能力が高い」のような、誰にでも当てはまる形容を使わない。必ず具体的な出来事に紐づける
+・課題を「もう少し」「やや」で曖昧にしない。何をどうするかを書く
+・励ましだけで終わらせない
+
+【出力後】
+最後に「この下書きで、事実の裏づけが弱い箇所」を箇条書きで指摘してください。
+そこは私の記憶が足りていない部分なので、確認してから書き足します。
+${c.confLine}`; } }
+  ]
+},
+
+/* ───────────────────────── ④ 稟議・申請書の説明文 ───────────────────────── */
+{
+  id:'ringi', no:'④', name:'稟議・申請書の説明文作成', short:'稟議・申請書',
+  freq:'随時', occLabel:'月に数件', perWeek:1, ease:0.85, depth:'light',
+  easeWhy:'型が決まっていて定型度が高い。5業務の中で最も削減率が高い',
+  nextIn:'次の申請は平均10日以内',
+  steps:[
+    { n:'背景・目的を整理する',       d:'何に困っていて、なぜ必要かを言語化する',
+      share:.20, aiRate:.30, sens:true,
+      why:'<b>困りごとを言語化するのはあなたですが、壁打ち相手にはなります。</b>「なぜ必要か」を3回聞き返させると、説明文の芯が固まります。' },
+    { n:'説明文のドラフトを書く',     d:'課題→対応案→効果→費用の順で文章化する',
+      share:.38, aiRate:.80, sens:true,
+      why:'<b>5業務の中で最も削れる工程です。</b>稟議は型が決まっているぶん、材料さえ揃えば文章化はほぼ渡せます。' },
+    { n:'想定質問への備え',           d:'承認者から来そうな質問と回答を用意する',
+      share:.17, aiRate:.60, sens:false,
+      why:'質問の洗い出しは得意な領域です。ただし<b>「あの部長はここに食いつく」という社内の癖</b>は、あなたがプロンプトに書き足す必要があります。' },
+    { n:'金額・条件・規程の確認',     d:'見積、決裁権限、社内規程との整合を確かめる',
+      share:.12, aiRate:.00, sens:false,
+      why:'<b>削れません。</b>AIは御社の規程を知らないのに、知っているふりをします。決裁区分を1つ間違えると差し戻しです。削減時間ゼロで固定しています。' },
+    { n:'社内フォーマットに落とす',   d:'所定の様式・文字数・項目に合わせる',
+      share:.13, aiRate:.45, sens:false,
+      why:'様式の項目名をプロンプトに貼れば、そこに合わせて書かせられます。転記作業そのものは残ります。' }
+  ],
+  keep:[
+    '<b>金額・条件・社内規程の確認。</b>AIは御社の決裁権限規程を知りません。知らないのに、それらしく答えます。ここは削れません。',
+    '<b>誰が承認するかを思い出す工程。</b>稟議が差し戻される原因は、文章の巧拙ではなく、承認者が気にする論点を外していることです。誰が読むかの記憶はあなたの中にしかありません。',
+    '<b>「本当に必要か」の判断。</b>説明文がうまく書けてしまうと、必要でない申請まで通ってしまいます。ここはむしろ、AIに書かせる前に自分で詰める工程です。'
+  ],
+  plan:[
+    { when:'次の申請時', txt:'<b>「申請の中身」の欄を埋めてからプロンプトを投げる。</b>特に「代替案として検討したもの と 選ばなかった理由」。ここが埋まっていない稟議は、まず差し戻されます。', cost:'所要 約10分' },
+    { when:'そのあと',   txt:'出力の<b>「厳しい順の想定質問5つ」を上から見る。</b>1問目に答えられなければ、その稟議はまだ出す段階にありません。', cost:'所要 約5分' },
+    { when:'提出前',     txt:'<b>金額・決裁区分・規程だけは、自分で原本に当たる。</b>ここはAIの出力を信じない工程として固定してください。', cost:'所要 約5分' }
+  ],
+  invest:'一度書いた「承認者が過去に指摘してきたこと」は、次回以降そのまま使い回せます。稟議は同じ人が承認するので、この一行の資産価値が最も高い業務です。',
+  prompts:[
+    { tag:'PROMPT', title:'稟議の説明文＋厳しい順の想定質問を出す',
+      aim:[
+        '<b>「代替案として検討したもの と 選ばなかった理由」を必須欄にしています。</b>稟議の差し戻し理由の多くがこれです。書けないなら、まだ出す段階ではないと分かります。',
+        '<b>想定質問を「厳しい順」に並べさせています。</b>順不同で5つ出されても、どれに備えるべきか分かりません。1問目に答えられるかが、提出の可否判断になります。',
+        '<b>「測れない効果を書かない。測り方まで書く」と指示しています。</b>「効率化が期待できます」で通る稟議はありません。'
+      ],
+      foot:'※このプロンプトは「工程②ドラフト」「工程③想定質問」を担当します。工程④（金額・規程の確認）は削減時間ゼロで固定しています。ここだけは必ず原本に当たってください。',
+      body:function(c){ return `稟議書の説明文の下書きを作ってください。
+
+【申請の中身】※私が埋めます
+・何を申請するか：%%（例：営業支援ツールの年間契約）%%
+・金額：%%（例：年額80万円）%%
+・なぜ必要か（いま困っていること）：%%（例：見積作成に1件30分かかり、月40件で20時間を消費している）%%
+・導入しないとどうなるか：%%（例：増員で対応すると人件費が上回る）%%
+・代替案として検討したもの と 選ばなかった理由：%%（例：A社製品は安いが既存システムと連携できない）%%
+・効果（数字にできるものは数字で）：%%（例：見積作成が1件10分になり、月13時間の削減）%%
+
+【承認者】：${c.reader}
+【この承認者が過去に指摘してきたこと】：%%（例：費用対効果の根拠が弱い、他部署との重複がないか）%%
+
+【依頼】
+(1) 説明文（400字以内）：課題 → 対応案 → 効果 → 費用 の順で書く
+(2) 承認者から来そうな質問を5つ。厳しい順に並べる
+(3) 各質問への回答案（1問2行以内）。私の情報では答えられないものは「【要確認】」と書く
+
+【禁止事項】
+・金額・数値は、私が書いたものだけを使う。相場や一般値で補完しない
+・「業務効率化が期待できます」のような、測れない効果を書かない。測り方まで書く
+・リスクに触れずに済ませない。想定リスクと、その打ち手を最低1つ書く
+・社内規程・決裁区分について推測で書かない。該当箇所は「【規程要確認】」と書く
+${c.confLine}`; } }
+  ]
+},
+
+/* ───────────────────────── ⑤ 部門数字の説明文 ───────────────────────── */
+{
+  id:'numbers', no:'⑤', name:'部門数字の説明文作成', short:'部門数字の説明',
+  freq:'月次', occLabel:'毎月', perWeek:1, ease:0.80, depth:'light',
+  easeWhy:'月1回。型は固定だが、要因分析の工程が重いぶん削減率は控えめ',
+  nextIn:'次の月次まで平均15日',
+  steps:[
+    { n:'数字を集計・抽出する',       d:'システムやExcelから必要な数字を取り出す',
+      share:.22, aiRate:.00, sens:false,
+      why:'<b>これはAIではなく、レポート設定の話です。</b>毎月同じ抽出をしているなら、そちらを固定するほうが確実に早い。AIに投げても削れないので、<b>削減ゼロで固定</b>しています。' },
+    { n:'増減の要因を特定する',       d:'なぜ上がったか／下がったかを突き止める',
+      share:.20, aiRate:.25, sens:true,
+      why:'<b>数字は「落ちた」事実しか語りません。</b>「先月末の大口が翌月にずれた」はシステムの外にある情報です。AIができるのは仮説出しまで。' },
+    { n:'説明文のドラフトを書く',     d:'要因を文章として組み立てる',
+      share:.30, aiRate:.80, sens:true,
+      why:'<b>要因さえ自分で特定できていれば、文章化は渡せます。</b>ここが最大の削減源です。' },
+    { n:'数字の検算・整合確認',       d:'説明文の数字が元データと合っているか確かめる',
+      share:.13, aiRate:.00, sens:false,
+      why:'<b>削れません。</b>説明文の数字が一つでも違うと、その月の報告はすべて信用されなくなります。削減時間ゼロで固定しています。' },
+    { n:'想定質問の準備',             d:'報告先から来そうな質問への備え',
+      share:.15, aiRate:.60, sens:false,
+      why:'質問の洗い出しは渡せます。数字を扱う会議では、聞かれることがある程度決まっているので相性がいい工程です。' }
+  ],
+  keep:[
+    '<b>増減の要因の特定。</b>数字は「落ちた」としか言いません。「先月末の大口が翌月にずれた」「担当者が産休に入った」——これらはシステムの外にあります。AIができるのは仮説出しまでです。',
+    '<b>検算。</b>説明文の数字が一つでも違えば、その月の報告は全部疑われます。ここは削減時間ゼロで固定しました。',
+    '<b>数字の集計・抽出。</b>これはAIの話ではなくレポート設定の話です。毎月同じ抽出をしているなら、その定型化のほうが確実に早い。AIで解こうとしないでください。'
+  ],
+  plan:[
+    { when:'月初',   txt:'<b>「私が把握している要因」を先に3行書く。</b>これを書かずに数字だけ貼ると、AIは「季節要因」のような当たり障りのない理由を作ります。', cost:'所要 約5分' },
+    { when:'その後', txt:'出力の<b>「未説明：〜」の行を見る。</b>あなたの要因メモでは説明しきれていない差分です。ここが、上で必ず聞かれる箇所になります。', cost:'所要 約10分' },
+    { when:'報告前', txt:'<b>数字だけは自分で突き合わせる。</b>AIに再計算させないでください。貼った数字をそのまま使わせる指示を入れてあります。', cost:'所要 約5分' }
+  ],
+  invest:'「未説明：〜」の行を毎月見ていくと、自分がどの数字の動きを説明できていないかが蓄積します。3か月続けると、月次会議での指摘が目に見えて減ります。',
+  prompts:[
+    { tag:'PROMPT', title:'月次の数字説明文をつくる（要因は自分で出す）',
+      aim:[
+        '<b>「私が把握している要因」を唯一の材料にしています。</b>これを渡さないと、AIは「季節要因」「市況の影響」のような、確認していない一般論を書きます。会議でそれを言うと、必ず突かれます。',
+        '<b>「未説明：〜」を明示させています。</b>あなたの要因メモで説明しきれない差分を、AIに指摘させる仕掛けです。これが月次会議で聞かれる箇所とほぼ一致します。',
+        '<b>「数字を再計算しない」と明記しています。</b>AIに計算をさせない。貼った数字をそのまま使わせる。検算はあなたの工程として残す——工程分解の線引きを、そのまま指示に落としています。'
+      ],
+      foot:'※このプロンプトは「工程③ドラフト」「工程⑤想定質問」を担当します。工程①（集計）と工程④（検算）は削減対象から外しています。',
+      body:function(c){ return `月次の部門数字について、報告用の説明文の下書きを作ってください。
+
+【今月の数字】※私が貼ります
+%%（例：売上 前月比 −8%、受注件数 +3件、平均単価 −12%、粗利率 32%（前月34%））%%
+
+【私が把握している要因】※これが唯一の"理由"の材料です
+・%%（例：大口のA社案件が、先方都合で翌月にずれた）%%
+・%%（例：単価の低い小口案件が増えた）%%
+
+【前月の報告で言ったこと】：%%（例：今月は巻き返すと説明した）%%
+【報告先】：${c.reader}
+
+【依頼】
+(1) 数字の動き（3行以内・事実のみ）
+(2) 要因の説明（私が書いた要因だけを使う。私が書いていない要因を推測で足さない）
+(3) 私が書いた要因で説明しきれていない差分があれば「未説明：〜」と明示する
+(4) 来月に向けた打ち手（私の要因メモから導けるものだけ）
+(5) 報告先から来そうな質問を3つと、その回答案
+
+【禁止事項】
+・「季節要因」「市況の影響」のような、確認していない一般的な要因を勝手に持ち出さない
+・数字を再計算しない。私が貼った数字をそのまま使う
+・悪い数字を美化しない。落ちているものは落ちていると書く
+・前月の発言と矛盾する場合は、指摘してから書く
+${c.confLine}`; } }
+  ]
+}
+];
+
+const JOB_BY_ID = {};
+JOBS.forEach(function(j){ JOB_BY_ID[j.id] = j; });
+
+/* ============================================================================
+   [3] 設問データ
+   ------------------------------------------------------------------------
+   Q1        : 業務選択（複数選択・最低1つ）
+   共通4問   : 全員に聞く。人数・習熟度・機密ルール・読み手
+   業務別    : 選んだ業務ぶんだけ出す。①②は深掘り2問、③④⑤は1問（濃淡）
+   最短      : 1 + 4 + 1 = 6問 ／ 最長 : 1 + 4 + 8 = 13問
+   ========================================================================= */
+
+const COMMON_QS = [
+  { id:'team', tag:'あなたのチーム', title:'いま、何名の部下を見ていますか？',
+    help:'人数によって、週報を読む時間と報告文を書く時間の比率が変わります。人数が多いほど「読む」側の比重が上がり、削減率はわずかに下がります。',
+    opts:[
+      { label:'1〜3名',   v:2  },
+      { label:'4〜7名',   v:6  },
+      { label:'8〜12名',  v:10 },
+      { label:'13名以上', v:16 }
+    ] },
+
+  { id:'ai', tag:'いまのAIとの距離', title:'生成AIを、いまどれくらい使っていますか？',
+    help:'正直に選んでください。ここで見栄を張ると、達成できない削減時間が出ます。',
+    opts:[
+      { label:'ほとんど使ったことがない', v:'none',
+        sub:'まず1業務だけに絞る前提で、控えめに見積もります' },
+      { label:'試したが、当たり障りのない返答が来て結局自分で書き直した', v:'tried',
+        sub:'原因は指示の作り方で、ほぼ解決できます。この診断はそこを直しにいきます',
+        badge:'この診断が想定している人' },
+      { label:'週に何度か使っている', v:'some',
+        sub:'工程を切り分けると、もう一段削れます' },
+      { label:'毎日使っていて、指示の型もある程度ある', v:'daily',
+        sub:'型がある前提で、少し強めに見積もります' }
+    ] },
+
+  { id:'conf', tag:'社内のルール', title:'社内で、生成AIの業務利用はどう扱われていますか？',
+    help:'ここは削減時間に直接効きます。実物を貼り付けられない環境では、貼り付けが必要な工程の削減率を下げて計算します。無理な数字は出しません。',
+    opts:[
+      { label:'会社が契約したAIがあり、業務利用が認められている', v:'official',
+        sub:'制約なしで計算します' },
+      { label:'個人アカウントで使っている（明確なルールはない）', v:'personal',
+        sub:'念のため、貼り付けが必要な工程を8%割り引きます' },
+      { label:'実名や具体的な数字は入力できない。伏せる必要がある', v:'masked',
+        sub:'匿名化の手間ぶん、貼り付け工程を22%割り引きます' },
+      { label:'社内規程で、生成AIの業務利用が禁止されている', v:'banned',
+        sub:'禁止下でも動かせる工程だけで計算し、結果に進め方を添えます' }
+    ] },
+
+  { id:'reader', tag:'その文章を読む人', title:'あなたが書いた文章を、最後に読むのは誰ですか？',
+    help:'ここがプロンプトに直接入ります。「誰が読むか」を書かないことが、当たり障りのない出力が返ってくる最大の原因です。',
+    opts:[
+      { label:'役員・経営会議',       v:'役員・経営会議', sub:'結論先出し・数字重視のトーンで生成します' },
+      { label:'直属の上司（部長など）', v:'直属の上司（部長）', sub:'判断を仰ぐ箇所を明示するトーンで生成します' },
+      { label:'部内のメンバー',       v:'部内のメンバー',   sub:'背景を省かず、次の動きが分かるトーンで生成します' },
+      { label:'社外（顧客・取引先）', v:'社外の取引先',     sub:'社内用語を避け、対外向けのトーンで生成します' }
+    ] }
+];
+
+/* 業務別設問。q.job で紐づけ、選ばれた業務のものだけ出題する */
+const JOB_QS = [
+  /* ── ① 深掘り2問 ── */
+  { id:'w_time', job:'weekly', tag:'① 週報の取りまとめ',
+    title:'週報を集め始めてから、まとめ終わるまで、毎週どれくらいかかっていますか？',
+    help:'催促・通読・報告文の作成・部下への返信まで、この業務にかかる時間を合計してください。ざっくりで構いません。この数字を工程比率で割り付けます。',
+    opts:[ { label:'30分くらい', v:30 }, { label:'1時間くらい', v:60 },
+           { label:'2時間くらい', v:120 }, { label:'3時間以上', v:195, sub:'3時間15分として計算します' } ] },
+
+  { id:'w_heavy', job:'weekly', tag:'① 週報の取りまとめ',
+    title:'そのうち、いちばん重いと感じるのはどの工程ですか？',
+    help:'選んだ工程の比重を1.5倍にして再配分します。この回答で、工程分解表の数字と、どこから手をつけるかが変わります。',
+    opts:[ { label:'部下から集める・催促する', v:0, sub:'未提出者への声かけが毎週発生する' },
+           { label:'全員分を読んで把握する',   v:1, sub:'人数ぶんの量を読むのが負担' },
+           { label:'報告用の文章にまとめる',   v:3, sub:'書き出すまでが長い' },
+           { label:'部下一人ひとりに返す',     v:4, sub:'返信の文面を考えるのに時間がかかる' } ] },
+
+  /* ── ② 深掘り2問 ── */
+  { id:'m_time', job:'meeting', tag:'② 会議資料の作成',
+    title:'週の会議資料・議題の準備に、毎週どれくらいかかっていますか？',
+    help:'議題を考える時間、数字を集める時間、資料を書く時間、体裁を整える時間の合計です。',
+    opts:[ { label:'30分くらい', v:30 }, { label:'1時間くらい', v:60 },
+           { label:'2時間くらい', v:120 }, { label:'3時間以上', v:195, sub:'3時間15分として計算します' } ] },
+
+  { id:'m_type', job:'meeting', tag:'② 会議資料の作成',
+    title:'その資料は、毎回同じ型ですか？',
+    help:'型が決まっているほど、骨子作りと本文作成をAIに渡せる割合が上がります。ここは削減率に直接効きます。',
+    opts:[ { label:'ほぼ毎回、同じ型で作っている', v:1.15,
+             sub:'定型度が高いので、骨子・本文の代替率を15%上げます' },
+           { label:'回によって内容が変わる',       v:1.00,
+             sub:'標準の代替率で計算します' },
+           { label:'毎回ほぼゼロから考えている',   v:0.85,
+             sub:'型がないぶん、代替率を15%下げます' } ] },
+
+  /* ── ③④⑤ は各1問（濃淡） ── */
+  { id:'r_time', job:'review', tag:'③ 評価コメント',
+    title:'評価コメントの作成に、部下1人あたりどれくらいかかっていますか？',
+    help:'半期に1回の業務なので、あなたの部下人数を掛けたうえで26週で割り、週あたりに均して他の業務と比べます。結果画面では「半期あたり」の数字も出します。',
+    opts:[ { label:'15分くらい', v:15 }, { label:'30分くらい', v:30 },
+           { label:'1時間くらい', v:60 }, { label:'1時間半以上', v:100, sub:'100分として計算します' } ] },
+
+  { id:'g_vol', job:'ringi', tag:'④ 稟議・申請書',
+    title:'稟議や申請書の説明文に、月あたり合計どれくらいかかっていますか？',
+    help:'件数 × 1件あたりの時間の合計です。月あたりの数字を、4.33で割って週あたりに均します。',
+    opts:[ { label:'月1件・30分程度',            v:30  },
+           { label:'月2〜3件（合計2時間くらい）', v:120 },
+           { label:'月4〜6件（合計4時間くらい）', v:240 },
+           { label:'月7件以上（合計6時間以上）',  v:390, sub:'6時間30分として計算します' } ] },
+
+  { id:'n_time', job:'numbers', tag:'⑤ 部門数字の説明',
+    title:'月次の部門数字の説明文づくりに、毎月どれくらいかかっていますか？',
+    help:'数字の抽出、要因の整理、説明文の作成、質問への備えまでの合計です。4.33で割って週あたりに均します。',
+    opts:[ { label:'30分くらい', v:30 }, { label:'1時間くらい', v:60 },
+           { label:'2時間くらい', v:120 }, { label:'3時間以上', v:195, sub:'3時間15分として計算します' } ] }
+];
+
+
+/* ============================================================================
+   [4] 共通ユーティリティ
+   ========================================================================= */
+const $  = function(s){ return document.querySelector(s); };
+const el = function(id){ return document.getElementById(id); };
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+  });
+}
+/* 分 → 「1時間20分」形式 */
+function fmtMin(m){
+  m = Math.round(m);
+  if (m < 60) return m + '分';
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? h + '時間' + r + '分' : h + '時間';
+}
+/* 分 → ヒーロー用に数値と単位を分けて返す */
+function fmtHero(m){
+  m = Math.round(m);
+  const h = Math.floor(m / 60), r = m % 60;
+  if (h === 0) return '<span class="num">' + r + '</span><span class="unit">分</span>';
+  if (r === 0) return '<span class="num">' + h + '</span><span class="unit">時間</span>';
+  return '<span class="num">' + h + '</span><span class="unit">時間</span>' +
+         '<span class="num">' + r + '</span><span class="unit">分</span>';
+}
+function toast(msg){
+  const t = el('toast');
+  t.textContent = msg; t.classList.add('is-on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('is-on'); }, 2000);
+}
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('is-active'); });
+  el(id).classList.add('is-active');
+  window.scrollTo({ top:0, behavior:'instant' in document.documentElement.style ? 'instant' : 'auto' });
+}
+const ICON = {
+  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 6.5"/></svg>',
+  chev:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  warn:  '<svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9.2"/></svg>',
+  copy:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5.5 15H4.5A1.5 1.5 0 013 13.5v-9A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5v1"/></svg>',
+  lock:  '<svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5" rx="2.4"/><path d="M8 10.5V7a4 4 0 018 0v3.5"/></svg>'
+};
+
+/* ============================================================================
+   [5] 状態と設問キュー
+   ========================================================================= */
+const QDEF = {};
+COMMON_QS.forEach(function(q){ QDEF[q.id] = q; });
+JOB_QS.forEach(function(q){ QDEF[q.id] = q; });
+
+/* URLハッシュに載せる順番。選択肢のインデックスのみを保存する（自由入力は扱わない） */
+const HASH_ORDER = ['team','ai','conf','reader','w_time','w_heavy','m_time','m_type','r_time','g_vol','n_time'];
+
+const state = {
+  jobs: [],   /* 選択された業務ID（JOBS の並び順を維持） */
+  pick: {},   /* 設問ID → 選択肢インデックス */
+  queue: [],
+  idx: 0
+};
+
+/* 設問IDから、選ばれた選択肢の値を取り出す */
+function val(id){
+  const q = QDEF[id], i = state.pick[id];
+  return (q && i != null && q.opts[i]) ? q.opts[i].v : null;
+}
+function pickedOpt(id){
+  const q = QDEF[id], i = state.pick[id];
+  return (q && i != null) ? q.opts[i] : null;
+}
+
+function buildQueue(){
+  const q = [{ type:'jobs' }];
+  COMMON_QS.forEach(function(x){ q.push({ type:'q', def:x }); });
+  JOBS.forEach(function(j){
+    if (state.jobs.indexOf(j.id) < 0) return;
+    JOB_QS.forEach(function(x){ if (x.job === j.id) q.push({ type:'q', def:x }); });
+  });
+  state.queue = q;
+  return q;
+}
+
+/* ============================================================================
+   [6] 削減時間エンジン
+   ------------------------------------------------------------------------
+     工程iの削減 = 週あたり所要時間 × 工程比率_i × AI代替率_i
+                   × 習熟係数 × (実物を貼る工程なら機密係数)
+     業務の削減  = Σ 工程iの削減
+   ========================================================================= */
+
+const WEEKS_PER_MONTH = 4.33;   /* 12か月 ÷ 52週 */
+const WEEKS_PER_HALF  = 26;     /* 半期 */
+const WORK_WEEKS      = 46;     /* 年換算に使う稼働週数（有給・年末年始・祝日週を控除した控えめな値） */
+const HOURS_PER_DAY   = 8;
+
+/* 業務ごとの「週あたり現状所要時間（分）」を、回答から求める */
+function baseWeekly(jobId){
+  const team = val('team') || 8;
+  switch (jobId) {
+    case 'weekly':  return val('w_time') || 0;
+    case 'meeting': return val('m_time') || 0;
+    /* 半期に1回 × 部下人数 → 26週で均す */
+    case 'review':  return (val('r_time') || 0) * team / WEEKS_PER_HALF;
+    /* 月あたりの合計 → 4.33週で均す */
+    case 'ringi':   return (val('g_vol')  || 0) / WEEKS_PER_MONTH;
+    case 'numbers': return (val('n_time') || 0) / WEEKS_PER_MONTH;
+  }
+  return 0;
+}
+/* 「その業務が本来発生する単位」での所要時間（分）と、その単位名 */
+function baseOccurrence(jobId){
+  const team = val('team') || 8;
+  switch (jobId) {
+    case 'weekly':  return { min: val('w_time') || 0, unit:'1週あたり' };
+    case 'meeting': return { min: val('m_time') || 0, unit:'1週あたり' };
+    case 'review':  return { min: (val('r_time') || 0) * team, unit:'半期あたり（' + team + '名分）' };
+    case 'ringi':   return { min: val('g_vol')  || 0, unit:'1か月あたり' };
+    case 'numbers': return { min: val('n_time') || 0, unit:'1か月あたり' };
+  }
+  return { min:0, unit:'' };
+}
+
+/* 工程比率の再配分。
+   (a) 人数による傾き：人数が増えるほど「集める・読む」の比重が上がる
+   (b) 本人が申告した「いちばん重い工程」を1.5倍にする
+   いずれも最後に合計1.00へ正規化する */
+function tiltedShares(job){
+  const team = val('team') || 8;
+  let s = job.steps.map(function(st){ return st.share; });
+
+  if (job.id === 'weekly') {
+    const m = team <= 3 ? [0.80, 0.85] : team <= 7 ? [0.95, 0.95] : team <= 12 ? [1.15, 1.15] : [1.35, 1.30];
+    s[0] *= m[0];   /* 提出の催促と収集 */
+    s[1] *= m[1];   /* 全員分を読んで把握する */
+    const heavy = val('w_heavy');
+    if (heavy != null && s[heavy] != null) s[heavy] *= 1.5;
+  }
+  if (job.id === 'review') {
+    const m = team <= 3 ? 0.70 : team <= 7 ? 0.90 : team <= 12 ? 1.20 : 1.50;
+    s[4] *= m;      /* 全員分のトーンを揃える */
+  }
+  const sum = s.reduce(function(a, b){ return a + b; }, 0);
+  return s.map(function(v){ return v / sum; });
+}
+
+/* 工程ごとのAI代替率の補正。いまは②の「資料の型」だけが効く */
+function tiltedRates(job){
+  let r = job.steps.map(function(st){ return st.aiRate; });
+  if (job.id === 'meeting') {
+    const t = val('m_type') || 1.0;
+    r[2] = Math.min(0.90, r[2] * t);   /* アジェンダ・骨子 */
+    r[3] = Math.min(0.90, r[3] * t);   /* 資料の中身 */
+  }
+  return r;
+}
+
+function compute(){
+  const skillOpt = pickedOpt('ai'), confOpt = pickedOpt('conf');
+  const skillKey = val('ai') || 'tried', confKey = val('conf') || 'official';
+  const skill = SKILL[skillKey].k, conf = CONF[confKey].k;
+
+  const rows = JOBS.filter(function(j){ return state.jobs.indexOf(j.id) >= 0; })
+  .map(function(job){
+    const weekly = baseWeekly(job.id);
+    const occ    = baseOccurrence(job.id);
+    const shares = tiltedShares(job);
+    const rates  = tiltedRates(job);
+
+    const steps = job.steps.map(function(st, i){
+      const cur   = weekly * shares[i];
+      /* 効いている代替率。習熟係数と、貼付が要る工程のみ機密係数を掛ける */
+      const eff   = Math.min(0.95, rates[i] * skill * (st.sens ? conf : 1));
+      const saved = cur * eff;
+      return {
+        def: st, i: i,
+        share: shares[i], rawRate: rates[i], effRate: eff,
+        cur: cur, saved: saved, keep: cur - saved,
+        verdict: verdictOf(rates[i])
+      };
+    });
+
+    const saved = steps.reduce(function(a, s){ return a + s.saved; }, 0);
+    const ratio = weekly > 0 ? saved / weekly : 0;
+    return {
+      job: job, weekly: weekly, occ: occ, steps: steps,
+      saved: saved, keep: weekly - saved, ratio: ratio,
+      occSaved: occ.min * ratio,
+      score: saved * job.ease
+    };
+  });
+
+  const total   = rows.reduce(function(a, r){ return a + r.saved; }, 0);
+  const curTotal= rows.reduce(function(a, r){ return a + r.weekly; }, 0);
+  const ranked  = rows.slice().sort(function(a, b){
+    if (b.score !== a.score) return b.score - a.score;
+    return b.saved - a.saved;
+  });
+
+  return {
+    rows: rows, ranked: ranked, total: total, curTotal: curTotal,
+    annualH: total * WORK_WEEKS / 60,
+    annualD: total * WORK_WEEKS / 60 / HOURS_PER_DAY,
+    skill: skill, conf: conf, skillOpt: skillOpt, confOpt: confOpt,
+    skillKey: skillKey, confKey: confKey,
+    /* 立ち上がりコスト：業務あたり25分の初期調整 × 2週 */
+    setupMin: rows.length * 25
+  };
+}
+
+/* プロンプト生成に渡すコンテキスト */
+function promptCtx(){
+  const confKey = val('conf') || 'official';
+  let confLine = '';
+  if (confKey === 'masked') {
+    confLine = '\n【重要】固有名詞は伏せて貼ります。A社・Bさんのような仮名で出てきたら、そのまま仮名で返してください。実在の社名や人名を推測して補わないでください。\n';
+  } else if (confKey === 'banned') {
+    confLine = '\n【重要】社内の実データは貼れません。構成・型・観点だけを出してください。私が中身を当てはめます。\n';
+  }
+  return {
+    team: val('team') || 8,
+    reader: val('reader') || '直属の上司（部長）',
+    confKey: confKey,
+    confLine: confLine
+  };
+}
+
+/* ============================================================================
+   [7] 設問画面のレンダリング
+   ========================================================================= */
+function renderStep(){
+  const item = state.queue[state.idx];
+  const body = el('q-body'), foot = el('q-foot');
+  const total = state.queue.length;
+
+  /* 進捗 */
+  const pct = Math.round((state.idx / total) * 100);
+  el('prog-fill').style.width = pct + '%';
+  el('prog-txt').textContent = state.jobs.length
+    ? 'Q' + (state.idx + 1) + ' / 全' + total + '問'
+    : 'Q' + (state.idx + 1);
+  el('prog-pct').textContent = pct + '%';
+  el('btn-back').disabled = state.idx === 0;
+
+  if (item.type === 'jobs') { renderJobSelect(body, foot); return; }
+  renderQuestion(item.def, body, foot);
+}
+
+function renderJobSelect(body, foot){
+  body.innerHTML =
+    '<span class="q-tag">担当業務の選択</span>' +
+    '<h2 class="q-title">いま、あなたが担当している業務をすべて選んでください</h2>' +
+    '<p class="q-help">1つだけでも診断できます。ここで選ばなかった業務の設問は出てきません。' +
+    '多く選ぶほど設問は増えますが、それでも3分で終わります。</p>' +
+    '<div class="job-grid" id="job-grid" role="group" aria-label="担当業務">' +
+      JOBS.map(function(j){
+        const on = state.jobs.indexOf(j.id) >= 0;
+        return '<button class="jobcard' + (on ? ' is-on' : '') + '" data-job="' + j.id + '"' +
+               ' aria-pressed="' + on + '">' +
+                 '<span class="jobcard-no">' + j.no + '</span>' +
+                 '<span class="jobcard-txt">' +
+                   '<span class="jobcard-name">' + esc(j.name) + '</span>' +
+                   '<span class="jobcard-meta">' + esc(j.freq) + '　/　工程' + j.steps.length + '個に分解</span>' +
+                 '</span>' +
+                 '<span class="jobcard-check">' + ICON.check + '</span>' +
+               '</button>';
+      }).join('') +
+    '</div>';
+
+  foot.innerHTML =
+    '<button class="btn" id="btn-next" ' + (state.jobs.length ? '' : 'disabled') + '>' +
+      '次へ進む' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>' +
+    '</button>' +
+    '<p class="q-foot-hint" id="pick-hint">' +
+      (state.jobs.length ? state.jobs.length + '業務を選択中' : '1つ以上選んでください') + '</p>';
+
+  body.querySelectorAll('.jobcard').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const id = btn.dataset.job, i = state.jobs.indexOf(id);
+      if (i >= 0) state.jobs.splice(i, 1); else state.jobs.push(id);
+      /* JOBS の並び順を保つ */
+      state.jobs.sort(function(a, b){
+        return JOBS.findIndex(function(j){ return j.id === a; }) -
+               JOBS.findIndex(function(j){ return j.id === b; });
+      });
+      const on = state.jobs.indexOf(id) >= 0;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', on);
+      el('btn-next').disabled = state.jobs.length === 0;
+      el('pick-hint').textContent = state.jobs.length
+        ? state.jobs.length + '業務を選択中'
+        : '1つ以上選んでください';
+    });
+  });
+
+  el('btn-next').addEventListener('click', function(){
+    /* 選択が変わったので、業務別設問を組み直す。共通設問の回答は保持する */
+    const keep = {};
+    Object.keys(state.pick).forEach(function(k){
+      const q = QDEF[k];
+      if (!q.job || state.jobs.indexOf(q.job) >= 0) keep[k] = state.pick[k];
+    });
+    state.pick = keep;
+    buildQueue();
+    state.idx++;
+    renderStep();
+  });
+}
+
+function renderQuestion(q, body, foot){
+  const isJobQ = !!q.job;
+  body.innerHTML =
+    '<span class="q-tag' + (isJobQ ? ' is-job' : '') + '">' + esc(q.tag) + '</span>' +
+    '<h2 class="q-title">' + esc(q.title) + '</h2>' +
+    (q.help ? '<p class="q-help">' + esc(q.help) + '</p>' : '') +
+    '<div class="q-opts" role="radiogroup" aria-label="' + esc(q.title) + '">' +
+      q.opts.map(function(o, i){
+        const on = state.pick[q.id] === i;
+        return '<button class="opt' + (on ? ' is-on' : '') + '" data-i="' + i + '"' +
+               ' role="radio" aria-checked="' + on + '">' +
+                 '<span class="opt-mark">' + ICON.check + '</span>' +
+                 '<span class="opt-txt">' +
+                   '<span class="opt-label">' + esc(o.label) + '</span>' +
+                   (o.sub ? '<span class="opt-sub">' + esc(o.sub) + '</span>' : '') +
+                   (o.badge ? '<span class="opt-badge">' + esc(o.badge) + '</span>' : '') +
+                 '</span>' +
+               '</button>';
+      }).join('') +
+    '</div>';
+  foot.innerHTML = '<p class="q-foot-hint">選ぶと自動で次に進みます' +
+    '<span class="kbd-only">　/　キーボードの <kbd>1</kbd>〜<kbd>' +
+    q.opts.length + '</kbd> でも選べます</span></p>';
+
+  body.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      body.querySelectorAll('.opt').forEach(function(b){
+        b.classList.remove('is-on'); b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('is-on'); btn.setAttribute('aria-checked', 'true');
+      state.pick[q.id] = Number(btn.dataset.i);
+      setTimeout(advance, 210);   /* 選んだら自動で次へ */
+    });
+  });
+}
+
+function advance(){
+  state.idx++;
+  if (state.idx >= state.queue.length) { runCalc(); return; }
+  renderStep();
+}
+function goBack(){
+  if (state.idx === 0) return;
+  state.idx--;
+  renderStep();
+}
+
+/* ============================================================================
+   [8] 計算演出 → 結果
+   ========================================================================= */
+function runCalc(){
+  writeHash();
+  const names = state.jobs.map(function(id){ return JOB_BY_ID[id].short; });
+  const lines = [
+    names.length + '業務を、合計' +
+      state.jobs.reduce(function(a, id){ return a + JOB_BY_ID[id].steps.length; }, 0) + '工程に分解',
+    '工程ごとにAI代替率を判定',
+    '「' + CONF[val('conf') || 'official'].label + '」の制約を反映',
+    '削れない工程を除いて積み上げ'
+  ];
+  el('calc-steps').innerHTML = lines.map(function(t, i){
+    return '<div class="calc-step" style="animation-delay:' + (0.22 + i * 0.3) + 's">' +
+           '<span class="tick">✓</span>' + esc(t) + '</div>';
+  }).join('');
+  show('s-calc');
+  setTimeout(function(){ renderResult(compute()); }, 1650);
+}
+
+/* ---------------------------------------------------------------------------
+   結果：ヒーロー
+   ------------------------------------------------------------------------ */
+function renderHero(R){
+  /* 週あたりが小さすぎて「0分」になる構成（半期・月次の業務だけを選んだ場合など）では、
+     週あたりを主役にしても意味がない。年あたりに切り替える。数字は同じで、見せる単位だけ変える。 */
+  const useAnnual = R.total < 15;
+  const chips = [];
+  if (useAnnual) {
+    chips.push('<li>1週あたりに均すと <b>' + fmtMin(R.total) + '</b></li>');
+  } else {
+    chips.push('<li>年間で <b>' + fmtMin(R.total * WORK_WEEKS) + '</b></li>');
+    if (R.annualD >= 0.5) chips.push('<li>1日8時間なら <b>' + R.annualD.toFixed(1) + '</b> 日ぶん</li>');
+  }
+  /* 週次以外の業務は「その業務が実際に来る単位」での数字も出す。そちらが体感に近い。 */
+  R.rows.forEach(function(r){
+    if (r.job.perWeek === 1 && (r.job.id === 'weekly' || r.job.id === 'meeting')) return;
+    chips.push('<li>' + r.job.no + ' は' + esc(r.occ.unit) + ' <b>' + fmtMin(r.occSaved) + '</b> 削減</li>');
+  });
+  chips.push('<li>稼働' + WORK_WEEKS + '週で換算</li>');
+
+  el('r-hero').innerHTML =
+    '<div class="wrap wrap-wide">' +
+      '<p class="r-hero-label">定着後、' + (useAnnual ? '1年間' : '1週間') + 'あたりAIに渡せる時間</p>' +
+      '<div class="r-figure">' + fmtHero(useAnnual ? R.total * WORK_WEEKS : R.total) + '</div>' +
+      '<p class="r-figure-sub">いまこの' + R.rows.length + '業務に週' +
+        '<b>' + fmtMin(R.curTotal) + '</b>。そのうち<b>' +
+        Math.round(R.total / (R.curTotal || 1) * 100) + '%</b>が、工程を切り分ければ渡せる部分です。</p>' +
+      '<ul class="r-annual">' + chips.join('') + '</ul>' +
+      /* 数字が極端に小さいときは、盛らずにそう言う。それ自体が診断結果である。 */
+      (R.total * WORK_WEEKS < 120
+        ? '<div class="r-honest">' + ICON.warn +
+            '<div><b>正直に言います。この構成では、AIに渡して浮く時間はほとんどありません。</b>' +
+            '選んだ業務の発生頻度が低いか、いまの所要時間がすでに短いためです。' +
+            'ここで無理に数字を作ることもできますが、それは嘘になります。' +
+            '<b>むしろ、選ばなかった業務のほうに時間が埋まっている可能性があります。</b>' +
+            '下までご覧いただいたあと、業務を選び直してもう一度試してみてください。</div>' +
+          '</div>'
+        : '<div class="r-honest">' + ICON.warn +
+            '<div><b>初週からこの数字にはなりません。</b>' +
+            '1〜2週目は、プロンプトを自分の職場の言い方に合わせる調整で、業務あたり20〜30分（合計 約' +
+            fmtMin(R.setupMin) + '）かかります。上の数字に乗るのは3週目からです。' +
+            'そう出ないツールは、たぶん盛っています。</div>' +
+          '</div>') +
+    '</div>';
+}
+
+/* ---------------------------------------------------------------------------
+   結果：内訳チャート（積み上げ横棒 / ライブラリ不使用）
+   ------------------------------------------------------------------------ */
+function renderChart(R){
+  const max = Math.max.apply(null, R.rows.map(function(r){ return r.weekly; })) || 1;
+  const rows = R.rows.map(function(r){
+    const wTotal = (r.weekly / max) * 100;
+    const keepPct = r.weekly > 0 ? (r.keep  / r.weekly) * 100 : 0;
+    const aiPct   = r.weekly > 0 ? (r.saved / r.weekly) * 100 : 0;
+    /* セグメント内にラベルを出すのは、幅が十分にあるときだけ */
+    const kw = wTotal * keepPct / 100, aw = wTotal * aiPct / 100;
+    const note = (r.job.perWeek === 1 && r.job.id !== 'review')
+      ? (r.job.id === 'ringi' || r.job.id === 'numbers'
+          ? '（' + r.occ.unit + fmtMin(r.occ.min) + 'を週あたりに均した値）' : '')
+      : '（' + r.occ.unit + fmtMin(r.occ.min) + 'を週あたりに均した値）';
+    /* 棒が短くて内側にラベルが入らない行は、棒の外に出す（値が読めない行を作らない） */
+    const inKeep = kw >= 16, inAi = aw >= 14;
+    const out = (inKeep && inAi) ? '' :
+      '<span class="bar-out">残 ' + fmtMin(r.keep) +
+      '<b>／AIへ ' + fmtMin(r.saved) + '</b></span>';
+
+    return '<div class="chart-row">' +
+      '<div class="chart-label">' +
+        '<span class="chart-name"><span class="no">' + r.job.no + '</span>' + esc(r.job.short) +
+          (note ? '<span style="color:var(--muted);font-weight:500;font-size:11.5px"> ' + esc(note) + '</span>' : '') +
+        '</span>' +
+        '<span class="chart-total">週 ' + fmtMin(r.weekly) + '</span>' +
+      '</div>' +
+      '<div class="bar-wrap">' +
+        '<div class="bar" style="width:' + Math.max(wTotal, 6) + '%" role="img" aria-label="' +
+          esc(r.job.short + '：自分に残る ' + fmtMin(r.keep) + '、AIに渡せる ' + fmtMin(r.saved)) + '">' +
+          '<div class="bar-seg keep' + (aiPct < 2 ? ' only' : '') + '" style="width:' + keepPct + '%">' +
+            (inKeep ? fmtMin(r.keep) : '') + '</div>' +
+          '<div class="bar-seg ai' + (keepPct < 2 ? ' only' : '') + '" style="width:' + aiPct + '%">' +
+            (inAi ? fmtMin(r.saved) : '') + '</div>' +
+        '</div>' + out +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="card">' +
+    '<div class="legend">' +
+      '<span class="legend-item"><span class="legend-swatch" style="background:var(--series-keep)"></span>自分に残る時間</span>' +
+      '<span class="legend-item"><span class="legend-swatch" style="background:var(--series-ai)"></span>AIに渡せる時間</span>' +
+    '</div>' + rows +
+    '<p class="chart-foot">棒の長さは、業務どうしの現状時間を比べられるように揃えています。' +
+    '半期・月次の業務は、他と比較できるよう週あたりに均した値です。実際の負担は' +
+    '「その業務が来る週」に集中します。</p>' +
+  '</div>';
+}
+
+/* ---------------------------------------------------------------------------
+   結果：優先順位
+   ------------------------------------------------------------------------ */
+function renderPriority(R){
+  return '<div class="pri">' + R.ranked.map(function(r, i){
+    const top = i === 0;
+    return '<div class="pri-card' + (top ? ' is-top' : '') + '">' +
+      '<span class="pri-rank">' + (i + 1) + '</span>' +
+      '<div class="pri-main">' +
+        (top ? '<span class="pri-flag">最優先 ／ 来週ここから</span>' : '') +
+        '<div class="pri-name">' + r.job.no + ' ' + esc(r.job.name) + '</div>' +
+        '<p class="pri-why">' + esc(r.job.easeWhy) + '。' + esc(r.job.nextIn) + '。' +
+          '削減率は<b>' + Math.round(r.ratio * 100) + '%</b>' +
+          '（' + fmtMin(r.weekly) + ' → ' + fmtMin(r.keep) + '）。' +
+          /* 率が1位より高いのに順位が下の場合は、その理由を明示する */
+          (!top && r.ratio > R.ranked[0].ratio + 0.005
+            ? '<b style="color:var(--ink)">率は1位より高いのですが、週あたりの絶対量が小さいので順位を下げています。</b>'
+            : '') + '</p>' +
+      '</div>' +
+      '<div class="pri-save"><div class="v">' + fmtMin(r.saved) + '</div>' +
+        '<div class="l">週あたり削減</div></div>' +
+    '</div>';
+  }).join('') + '</div>' +
+  '<p class="chart-foot" style="margin-top:11px">並び順は「' + EASE_NOTE + '」で決めています。' +
+  '削減時間が最大の業務が1位とは限りません。半期に1回の業務は、いま練習できないぶん順位を下げています。</p>';
+}
+
+/* ---------------------------------------------------------------------------
+   結果：工程分解テーブル
+   ------------------------------------------------------------------------ */
+function renderSteps(r, opts){
+  opts = opts || {};
+  const rows = r.steps.map(function(s, i){
+    const v = VERDICT[s.verdict];
+    const zero = s.def.aiRate === 0;
+    return '<div class="step-row">' +
+      '<span class="step-n">' + (i + 1) + '</span>' +
+      '<div class="step-main">' +
+        '<div class="step-name">' + esc(s.def.n) + '</div>' +
+        '<div class="step-desc">' + esc(s.def.d) + '</div>' +
+        (opts.why !== false ? '<div class="step-why">' + s.def.why + '</div>' : '') +
+      '</div>' +
+      '<div class="step-right">' +
+        '<span class="verdict ' + v.cls + '">' + v.label + '</span>' +
+        '<div class="step-time">' + fmtMin(s.cur) +
+          '<span class="arrow">→</span>' + fmtMin(s.keep) +
+          (zero ? '' : ' <b>−' + fmtMin(s.saved) + '</b>') + '</div>' +
+        /* モデルの中身を隠さない。工程比率とAI代替率をそのまま出す */
+        '<div class="step-rate">比率 ' + Math.round(s.share * 100) + '%' +
+          '<span class="sep">/</span>代替率 ' + Math.round(s.def.aiRate * 100) + '%' +
+          (Math.abs(s.effRate - s.def.aiRate) > 0.005 && !zero
+            ? '<span class="sep">→</span>実効 ' + Math.round(s.effRate * 100) + '%' : '') +
+          (s.def.sens ? '<span class="sens" title="実物を貼り付ける工程。機密係数が掛かります">貼付</span>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="card"><div class="steps">' + rows + '</div>' +
+    '<div class="steps-sum">' +
+      '<span class="l">' + esc(r.job.short) + '　週' + fmtMin(r.weekly) + ' のうち</span>' +
+      '<span class="v">AIに渡せる <b>' + fmtMin(r.saved) + '</b>' +
+        '<span style="color:var(--muted);font-weight:600;font-size:12.5px">' +
+        '（' + Math.round(r.ratio * 100) + '%）</span></span>' +
+    '</div></div>';
+}
+
+/* ---------------------------------------------------------------------------
+   結果：削れない工程
+   ------------------------------------------------------------------------ */
+function renderKeep(r){
+  return '<div class="keepbox">' +
+    '<h3>' + ICON.lock + 'ここは渡さないでください（' + r.job.short + '）</h3>' +
+    '<ul>' + r.job.keep.map(function(t){ return '<li>' + t + '</li>'; }).join('') + '</ul>' +
+  '</div>';
+}
+
+/* ---------------------------------------------------------------------------
+   結果：プロンプト
+   ------------------------------------------------------------------------ */
+let PROMPT_STORE = [];
+function renderPrompts(r){
+  const ctx = promptCtx();
+  return r.job.prompts.map(function(p){
+    const raw = p.body(ctx);
+    const id  = PROMPT_STORE.push(raw.replace(/%%/g, '')) - 1;
+    /* %%…%% は「あなたが埋める欄」。表示ではハイライトし、コピー時は記号を外す */
+    const html = esc(raw).replace(/%%([\s\S]*?)%%/g, function(_, inner){
+      return '<span class="prompt-fill">' + inner + '</span>';
+    });
+    return '<div class="prompt">' +
+      '<div class="prompt-head">' +
+        '<span class="prompt-step">' + esc(p.tag) + '</span>' +
+        '<span class="prompt-title">' + esc(p.title) + '</span>' +
+        '<button class="copy" data-p="' + id + '">' + ICON.copy + 'コピー</button>' +
+      '</div>' +
+      '<div class="prompt-aim"><b>なぜこの指示なのか</b>' +
+        '<ul>' + p.aim.map(function(a){ return '<li>' + a + '</li>'; }).join('') + '</ul>' +
+      '</div>' +
+      '<pre class="prompt-body">' + html + '</pre>' +
+      '<div class="prompt-foot">' + esc(p.foot) +
+        '　／　<span style="background:#fff2cc;padding:0 4px;border-radius:3px">黄色の箇所</span>' +
+        'は、あなたが埋める欄です。ここを埋めないと、また当たり障りのない出力が返ってきます。</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ---------------------------------------------------------------------------
+   結果：来週の手順
+   ------------------------------------------------------------------------ */
+function renderPlan(r){
+  return '<div class="plan">' + r.job.plan.map(function(p){
+    return '<div class="plan-item">' +
+      '<span class="plan-when">' + esc(p.when) + '</span>' +
+      '<div class="plan-txt">' + p.txt +
+        '<div class="plan-cost">' + esc(p.cost) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('') + '</div>' +
+  '<div class="note info" style="margin-top:11px">' + ICON.warn +
+    '<div><b>初期投資について。</b>' + esc(r.job.invest) + '</div></div>';
+}
+
+/* ---------------------------------------------------------------------------
+   結果：根拠の開示
+   ------------------------------------------------------------------------ */
+function renderBasis(R){
+  const teamOpt = pickedOpt('team'), readerOpt = pickedOpt('reader');
+  const inputs = [
+    ['部下の人数', teamOpt ? teamOpt.label : '—',
+      '①の「集める・読む」工程と、③の「トーン統一」工程の比重、および③の総量に効く'],
+    ['AIの利用状況', R.skillOpt ? R.skillOpt.label : '—',
+      '習熟係数 ×' + R.skill.toFixed(2) + ' として、全工程の削減量に掛かる'],
+    ['社内のルール', R.confOpt ? R.confOpt.label : '—',
+      '機密係数 ×' + R.conf.toFixed(2) + '。実物を貼り付ける工程だけに掛かる'],
+    ['文章を読む人', readerOpt ? readerOpt.label : '—',
+      '削減時間には効かない。生成されるプロンプトの読み手指定に入る']
+  ];
+  if (val('w_heavy') != null) {
+    inputs.push(['①でいちばん重い工程', pickedOpt('w_heavy').label,
+      'その工程の比重を1.5倍にして再配分。工程分解表の数字が変わる']);
+  }
+  if (val('m_type') != null) {
+    inputs.push(['②の資料の型', pickedOpt('m_type').label,
+      '骨子・本文工程のAI代替率に ×' + val('m_type').toFixed(2) + '（上限0.90）']);
+  }
+
+  const perJob = R.rows.map(function(r){
+    return '<tr><td>' + r.job.no + ' ' + esc(r.job.short) + '</td>' +
+      '<td>' + fmtMin(r.weekly) + '</td>' +
+      '<td>' + fmtMin(r.saved) + '</td>' +
+      '<td>' + Math.round(r.ratio * 100) + '%</td>' +
+      '<td>' + r.job.steps.filter(function(s){ return s.aiRate === 0; }).length + '工程</td></tr>';
+  }).join('');
+
+  return '<div class="calcbox">' +
+      '<h4>1. 何を掛け合わせているか</h4>' +
+      '<div class="formula">工程iの削減 = あなたの申告時間 × 工程比率_i × AI代替率_i\n' +
+      '                × 習熟係数 × (実物を貼る工程なら 機密係数)\n\n' +
+      '業務の削減   = Σ 工程iの削減\n' +
+      '週あたり合計 = Σ 業務の削減</div>' +
+      '<p>業務単位で「◯%削減」と決め打ちしていません。<b>工程ごとに率を当てて積み上げています。</b>' +
+      'そうしないと、削れない工程を数式の中で名指しできないからです。' +
+      'AI代替率0の工程（検算、評価の格付け、金額・規程の確認）は、どの回答をしても削減ゼロで固定されます。</p>' +
+    '</div>' +
+    '<div class="calcbox">' +
+      '<h4>2. あなたの回答が、どこに効いたか</h4>' +
+      '<div class="tbl-scroll"><table class="tbl">' +
+        '<thead><tr><th>設問</th><th>あなたの回答</th><th>効き方</th></tr></thead><tbody>' +
+        inputs.map(function(x){
+          return '<tr><td>' + esc(x[0]) + '</td><td class="yourpick">' + esc(x[1]) + '</td><td>' + esc(x[2]) + '</td></tr>';
+        }).join('') +
+      '</tbody></table></div>' +
+    '</div>' +
+    '<div class="calcbox">' +
+      '<h4>3. 業務ごとの結果</h4>' +
+      '<div class="tbl-scroll"><table class="tbl">' +
+        '<thead><tr><th>業務</th><th>現状(週)</th><th>削減(週)</th><th>削減率</th><th>削れない工程</th></tr></thead>' +
+        '<tbody>' + perJob + '</tbody></table></div>' +
+      '<p style="margin-top:9px">年換算は稼働' + WORK_WEEKS + '週で計算しています（52週ではありません）。' +
+      '有給・年末年始・祝日の多い週を落とした、控えめな値です。</p>' +
+    '</div>' +
+    '<div class="calcbox">' +
+      '<h4>4. なぜ業務ごとに作り込みの深さを変えたか</h4>' +
+      '<p>5業務を同じ深さで扱っていません。意図的です。<br>' +
+      '<b>①週報と②会議資料は、工程分解に加えて設問を2問ずつ置き、プロンプトを2本立て（材料出し → 文章化）にしました。</b>' +
+      '週次で毎週発生し、管理職の時間をいちばん確実に削っているのがこの2つだからです。' +
+      '毎週来るということは、直した効果が毎週返ってくるということでもあります。<br>' +
+      '<b>③評価コメント・④稟議・⑤部門数字は、工程分解と削れない工程の説明、プロンプト1本に絞りました。</b>' +
+      '③は半期に1回で、いま手を動かして練習できません。④⑤は型が決まっていて、' +
+      '設問を増やしても削減時間の精度がほとんど上がらないからです。' +
+      '設問を増やすことは、それ自体が離脱の原因になります。' +
+      '<b>聞かないという判断も、設計のうちです。</b></p>' +
+    '</div>' +
+    '<div class="calcbox">' +
+      '<h4>5. この見積もりの限界</h4>' +
+      '<p>・工程比率は、管理職業務の一般的な内訳をもとに置いた初期値です。あなたの職場では違う可能性があります。' +
+      '「いちばん重い工程」の設問を置いているのは、そのズレを一部でも補正するためです。<br>' +
+      '・AI代替率は、指示が適切に書けている場合の値です。だから、率だけでなく指示そのものを一緒に配っています。<br>' +
+      '・削減された時間がそのまま空くとは限りません。空いた時間に別の業務が入るのが管理職の常です。' +
+      'この数字は「取り戻せる上限」であって、「自動的に増える自由時間」ではありません。</p>' +
+    '</div>';
+}
+
+/* ---------------------------------------------------------------------------
+   結果：機密ルールに応じた注意
+   ------------------------------------------------------------------------ */
+function renderConfNote(R){
+  const k = R.confKey;
+  if (k === 'official') {
+    return '<div class="note info">' + ICON.warn +
+      '<div><b>会社契約のAIがある環境として計算しました。</b>' +
+      '制約による割引はかけていません。ただし、社外秘の扱いは各社の規程が優先します。' +
+      '評価コメントなど人事情報を扱う場合は、事前に人事部門に確認してください。</div></div>';
+  }
+  if (k === 'personal') {
+    return '<div class="note warn">' + ICON.warn +
+      '<div><b>個人アカウント利用のため、貼り付けが必要な工程を8%割り引いています。</b>' +
+      '実務上いちばん現実的な状態ですが、リスクは残ります。' +
+      '先に「学習に使わせない設定」だけ確認してください。それだけで通せる範囲が広がります。' +
+      '会社に契約を提案する場合は、この診断結果の年間削減時間がそのまま稟議の材料になります' +
+      '（④の稟議プロンプトが使えます）。</div></div>';
+  }
+  if (k === 'masked') {
+    return '<div class="note warn">' + ICON.warn +
+      '<div><b>実名や数字を伏せる必要があるため、貼り付け工程を22%割り引いています。</b>' +
+      'この環境で効くのは<b>「置換ルールを固定する」</b>ことです。' +
+      '「部下＝Aさん〜Hさん」「取引先＝X社・Y社」と決めておけば、匿名化は毎回の作業ではなく一度きりの作業になります。' +
+      '生成されたプロンプトには、仮名をそのまま扱うよう指示を追記済みです。</div></div>';
+  }
+  return '<div class="note crit">' + ICON.warn +
+    '<div><b>社内規程で禁止されている前提で、55%に割り引いて計算しました。</b>' +
+    'それでも数字が残るのは、<b>社内データを貼らずに進められる工程があるから</b>です。' +
+    'まず②の「骨子作り」から試してください。会議の目的と時間だけを渡すもので、社内の実データは一切含みません。' +
+    '規程に触れずに、AIの効き方を体感できる唯一の入口です。<br>' +
+    'そのうえで、この診断で出た<b>年間' + Math.round(R.annualH) + '時間</b>を根拠に、' +
+    '会社への申請を出すのが本筋です。④の稟議プロンプトがそのまま使えます。</div></div>';
+}
+
+/* ---------------------------------------------------------------------------
+   結果：全体
+   ------------------------------------------------------------------------ */
+function renderResult(R){
+  PROMPT_STORE = [];
+  renderHero(R);
+  const top = R.ranked[0];
+  const rest = R.ranked.slice(1);
+
+  let h = '';
+
+  /* 要点（読み飛ばす人のための3行） */
+  const bigStep = top.steps.slice().sort(function(a, b){ return b.saved - a.saved; })[0];
+  const humanStep = top.steps.filter(function(s){ return s.verdict === 'human'; })
+                            .sort(function(a, b){ return b.cur - a.cur; })[0]
+                 || top.steps.slice().sort(function(a, b){ return a.effRate - b.effRate; })[0];
+  h += '<div class="gist">' +
+    '<p class="gist-label">結論（ここだけ読めば動けます）</p>' +
+    '<ol class="gist-list">' +
+      '<li><b>来週やるのは' + top.job.no + ' ' + esc(top.job.short) + 'の1つだけ。</b>' +
+        'ここで週' + fmtMin(top.saved) + 'が浮きます。</li>' +
+      '<li><b>渡すのは「' + esc(bigStep.def.n) + '」工程（週' + fmtMin(bigStep.saved) + '）。</b>' +
+        '渡さないのは「' + esc(humanStep.def.n) + '」——ここはあなたの判断が要ります。</li>' +
+      '<li><b>今日やることは、下の' + esc(top.job.prompts[0].tag) + 'のプロンプトをコピーしておくことだけ。</b></li>' +
+    '</ol>' +
+  '</div>';
+
+  /* 内訳 */
+  h += '<section class="sec">' +
+    '<div class="sec-head"><span class="sec-no">01</span><h2>選んだ業務ごとの内訳</h2></div>' +
+    '<p class="sec-lede">オレンジが、工程を切り分ければAIに渡せる部分です。' +
+    'ブルーはあなたに残ります——残るのが失敗ではなく、<b>残すべきものが残っている状態</b>です。</p>' +
+    renderChart(R) + '</section>';
+
+  /* 優先順位 */
+  h += '<section class="sec">' +
+    '<div class="sec-head"><span class="sec-no">02</span><h2>どれから手をつけるか</h2></div>' +
+    '<p class="sec-lede">全部いっぺんに変えようとすると、まず続きません。1業務ずつです。</p>' +
+    renderPriority(R) + '</section>';
+
+  /* 最優先の詳細 */
+  h += '<section class="sec">' +
+    '<div class="sec-head"><span class="sec-no">03</span>' +
+    '<h2>最優先：' + top.job.no + ' ' + esc(top.job.name) + '</h2></div>' +
+    '<p class="sec-lede">この業務を' + top.job.steps.length + '工程に割りました。' +
+    '各工程の「渡す／半分渡す／自分でやる」の判定と、その理由です。' +
+    '時間はあなたが申告した週' + fmtMin(top.weekly) + 'を工程比率で割り付けたものです。</p>' +
+    renderSteps(top) +
+    '<div style="margin-top:14px">' + renderKeep(top) + '</div>' +
+  '</section>';
+
+  h += '<section class="sec">' +
+    '<div class="sec-head"><span class="sec-no">04</span><h2>そのまま使えるプロンプト</h2></div>' +
+    '<p class="sec-lede">あなたの回答（部下' + (val('team') || 8) + '名／読み手は' +
+    esc(val('reader') || '直属の上司（部長）') + '）を反映済みです。コピーして、そのまま貼ってください。</p>' +
+    renderPrompts(top) + '</section>';
+
+  h += '<section class="sec">' +
+    '<div class="sec-head"><span class="sec-no">05</span><h2>来週、この順番でやってください</h2></div>' +
+    '<p class="sec-lede">読んで終わりにしないための手順です。合計で30分もかかりません。</p>' +
+    renderPlan(top) + '</section>';
+
+  /* 残りの業務 */
+  if (rest.length) {
+    h += '<section class="sec">' +
+      '<div class="sec-head"><span class="sec-no">06</span><h2>残り' + rest.length + '業務（あとで開いてください）</h2></div>' +
+      '<p class="sec-lede">1つ目が回り始めてからで十分です。' +
+      '工程分解・削れない工程・プロンプトは、すべてここに入っています。</p>' +
+      rest.map(function(r, i){
+        return '<div class="acc" data-acc>' +
+          '<button class="acc-btn" aria-expanded="false">' +
+            '<span class="acc-no">' + r.job.no + '</span>' +
+            '<span class="acc-txt">' +
+              '<span class="acc-name">' + esc(r.job.name) + '</span>' +
+              '<span class="acc-meta">週 ' + fmtMin(r.weekly) + ' のうち ' +
+                fmtMin(r.saved) + ' 削減（' + Math.round(r.ratio * 100) + '%）　/　' +
+                esc(r.job.occLabel) + '</span>' +
+            '</span>' +
+            '<span class="acc-chev">' + ICON.chev + '</span>' +
+          '</button>' +
+          '<div class="acc-panel">' +
+            renderSteps(r) +
+            '<div style="margin-top:13px">' + renderKeep(r) + '</div>' +
+            '<div style="margin-top:13px">' + renderPrompts(r) + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</section>';
+  }
+
+  /* 制約への対応 */
+  h += '<section class="sec">' +
+    '<div class="sec-head"><span class="sec-no">0' + (rest.length ? 7 : 6) + '</span>' +
+    '<h2>あなたの環境で気をつけること</h2></div>' +
+    renderConfNote(R) + '</section>';
+
+  /* 根拠 */
+  h += '<section class="sec">' +
+    '<div class="sec-head"><span class="sec-no">0' + (rest.length ? 8 : 7) + '</span>' +
+    '<h2>この数字はどう出したか</h2></div>' +
+    '<p class="sec-lede">納得できない数字は、使われません。計算式も、あなたの回答がどこに効いたかも、全部開きます。</p>' +
+    renderBasis(R) + '</section>';
+
+  /* 締め */
+  h += '<section class="sec">' +
+    '<div class="closing">' +
+      '<p class="closing-lead">最後に、ひとつだけ。</p>' +
+      '<p class="closing-main">' +
+        'この' + fmtMin(R.total) + 'は、<b>定時後にようやく始めていた自分の仕事を、定時内に戻すための時間</b>です。<br>' +
+        'ただし、放っておくと別の業務が入ります。空けた時間に何を入れるかまで決めて、はじめて取り戻したことになります。' +
+      '</p>' +
+      '<p class="closing-sub">' +
+        '今日やることは1つだけです。<b>' + top.job.no + ' ' + esc(top.job.short) +
+        '</b>の<b>' + esc(top.job.prompts[0].tag) + '</b>のプロンプトをコピーして、どこかに貼り付けて置いておく。' +
+        'それだけで、来週の' + esc(top.job.plan[0].when) + 'に手が動きます。<br>' +
+        (R.rows.length > 1
+          ? '<b>残り' + (R.rows.length - 1) + '業務は、今日は見なくて大丈夫です。</b>'
+          : '<b>全部を変えようとしなくていい。この1業務が回り始めてからで十分です。</b>') +
+      '</p>' +
+    '</div>' +
+  '</section>';
+
+  /* アクション */
+  h += '<div class="r-actions">' +
+    '<button class="btn btn-nav" id="btn-print">' +
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg>' +
+      'この結果を印刷 / PDFで保存</button>' +
+    '<button class="btn btn-ghost" id="btn-share">結果のURLをコピー（回答が復元されます）</button>' +
+    '<button class="btn btn-ghost" id="btn-restart">回答をやり直す</button>' +
+  '</div>';
+
+  h += '<p class="foot"><b>工程で切る、AI引き継ぎ診断</b><br>' +
+    '判定はすべてブラウザ内で行っています。外部APIは使っていません。入力内容が送信・保存されることはありません。<br>' +
+    '削減時間は、工程比率とAI代替率にもとづく見積もりです。実測値ではありません。</p>';
+
+  el('r-body').innerHTML = h;
+  bindResult();
+  show('s-result');
+  animateBars();
+}
+
+/* 棒グラフを0幅から伸ばす */
+function animateBars(){
+  const segs = document.querySelectorAll('#r-body .bar-seg');
+  const w = [];
+  segs.forEach(function(s){ w.push(s.style.width); s.style.width = '0%'; });
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      segs.forEach(function(s, i){ s.style.width = w[i]; });
+    });
+  });
+}
+
+function bindResult(){
+  document.querySelectorAll('#r-body .copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const text = PROMPT_STORE[Number(btn.dataset.p)];
+      copyText(text).then(function(ok){
+        if (!ok) { toast('コピーできませんでした。手動で選択してください'); return; }
+        btn.classList.add('is-done');
+        btn.innerHTML = ICON.check.replace(/#fff/g, 'currentColor') + 'コピーしました';
+        toast('プロンプトをコピーしました。黄色の欄を埋めてから貼ってください');
+        setTimeout(function(){
+          btn.classList.remove('is-done');
+          btn.innerHTML = ICON.copy + 'コピー';
+        }, 2600);
+      });
+    });
+  });
+
+  document.querySelectorAll('#r-body [data-acc]').forEach(function(acc){
+    const btn = acc.querySelector('.acc-btn');
+    btn.addEventListener('click', function(){
+      const open = acc.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open);
+      if (open) requestAnimationFrame(animateBars);
+    });
+  });
+
+  el('btn-print').addEventListener('click', function(){ window.print(); });
+  el('btn-share').addEventListener('click', function(){
+    writeHash();
+    copyText(location.href).then(function(ok){
+      toast(ok ? '結果のURLをコピーしました' : location.href);
+    });
+  });
+  el('btn-restart').addEventListener('click', function(){
+    state.jobs = []; state.pick = {}; state.idx = 0;
+    history.replaceState(null, '', location.pathname + location.search);
+    buildQueue(); renderStep(); show('s-quiz');
+  });
+}
+
+function copyText(text){
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text).then(function(){ return true; })
+      .catch(function(){ return legacyCopy(text); });
+  }
+  return Promise.resolve(legacyCopy(text));
+}
+function legacyCopy(text){
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) { return false; }
+}
+
+/* ============================================================================
+   [9] URLハッシュ（選択肢インデックスのみ）
+   ========================================================================= */
+function writeHash(){
+  const mask = JOBS.reduce(function(a, j, i){
+    return a + (state.jobs.indexOf(j.id) >= 0 ? (1 << i) : 0);
+  }, 0);
+  const parts = [mask].concat(HASH_ORDER.map(function(id){
+    return state.pick[id] != null ? state.pick[id] : -1;
+  }));
+  history.replaceState(null, '', location.pathname + location.search + '#d=' + parts.join('.'));
+}
+function readHash(){
+  const m = /#d=([\-0-9.]+)/.exec(location.hash);
+  if (!m) return false;
+  const p = m[1].split('.').map(Number);
+  if (p.length !== HASH_ORDER.length + 1 || p.some(isNaN)) return false;
+  const mask = p[0];
+  state.jobs = JOBS.filter(function(j, i){ return mask & (1 << i); }).map(function(j){ return j.id; });
+  if (!state.jobs.length) return false;
+  state.pick = {};
+  HASH_ORDER.forEach(function(id, i){
+    const v = p[i + 1];
+    if (v >= 0 && QDEF[id] && QDEF[id].opts[v]) state.pick[id] = v;
+  });
+  buildQueue();
+  /* 共通4問がすべて揃っている場合だけ結果を復元する */
+  const ok = COMMON_QS.every(function(q){ return state.pick[q.id] != null; }) &&
+             state.queue.every(function(it){ return it.type === 'jobs' || state.pick[it.def.id] != null; });
+  if (!ok) return false;
+  state.idx = state.queue.length;
+  renderResult(compute());
+  return true;
+}
+
+/* ============================================================================
+   [10] 起動
+   ========================================================================= */
+el('btn-start').addEventListener('click', function(){
+  buildQueue(); state.idx = 0; renderStep(); show('s-quiz');
+});
+el('btn-back').addEventListener('click', goBack);
+
+document.addEventListener('keydown', function(e){
+  if (!el('s-quiz').classList.contains('is-active')) return;
+  if (e.key === 'Escape' || (e.key === 'ArrowLeft' && e.altKey)) { goBack(); return; }
+  const item = state.queue[state.idx];
+  if (!item || item.type !== 'q') return;
+  const n = Number(e.key);
+  if (n >= 1 && n <= item.def.opts.length) {
+    const btn = el('q-body').querySelectorAll('.opt')[n - 1];
+    if (btn) btn.click();
+  }
+});
+
+buildQueue();
+readHash();
+</script>
+</body>
+</html>
