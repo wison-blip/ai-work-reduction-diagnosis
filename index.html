@@ -115,6 +115,35 @@ img{ max-width:100%; }
   position:relative;
   border-bottom:1px solid var(--line);
 }
+/* デスクトップは2カラム：左に主張の文章、右に失敗談＋図解。CTAは両カラムの下、全幅で1回だけ。
+   図解を足したことで縦に伸びすぎたための組み替え（1カラムのままだとCTAが2画面分下がる）。 */
+.hero-in{
+  max-width:1120px;
+}
+@media (min-width:860px){
+  .hero-in{
+    display:grid; grid-template-columns:1fr 1fr; column-gap:52px; row-gap:0;
+    align-items:start;
+  }
+  .hero-l{ padding-top:4px; }
+  .hero-b{ grid-column:1 / -1; margin-top:30px; padding-top:26px; border-top:1px solid var(--line); }
+}
+/* 左カラム下部の余白を、成果物の中身を裏付ける事実で埋める。
+   煽り文句ではなく、数えられる事実だけを置く。 */
+.hero-stats{
+  display:flex; gap:0; margin-top:32px; max-width:30em;
+  border-top:1px solid var(--line);
+}
+.hero-stats div{
+  flex:1; padding:16px 14px 0 0; min-width:0;
+}
+.hero-stats div + div{ padding-left:14px; border-left:1px solid var(--line); }
+.hero-stats dt{
+  font-size:22px; font-weight:800; color:var(--ink); letter-spacing:-.01em;
+}
+.hero-stats dd{
+  margin:3px 0 0; font-size:11.5px; color:var(--muted); line-height:1.5;
+}
 .hero-badge{
   display:inline-flex; align-items:center; gap:8px;
   font-size:12px; font-weight:700; letter-spacing:.1em;
@@ -157,6 +186,49 @@ img{ max-width:100%; }
   color:var(--ink); font-weight:800;
   background:linear-gradient(transparent 74%, rgba(194,65,12,.24) 74%);
 }
+/* 主張の図解。装飾ではなく、この作品の結論そのものを1枚にしたもの。
+   ここで色の意味（ラスト＝AIに渡す／インディゴ＝自分に残る）を先に教えておくと、
+   結果画面の工程バーがそのまま読める。 */
+.thesis{
+  margin:26px 0 0; padding:20px 22px; max-width:38em;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--radius); box-shadow:var(--shadow-1);
+}
+.tz-row + .tz-row{ margin-top:16px; padding-top:16px; border-top:1px solid var(--line-soft); }
+.tz-head{
+  display:flex; align-items:center; gap:7px;
+  font-size:13px; font-weight:800; color:var(--ink-2);
+}
+.tz-mark{
+  display:inline-grid; place-items:center; width:18px; height:18px;
+  border-radius:50%; font-size:11px; font-weight:900; color:#fff; flex:none;
+}
+.is-no  .tz-mark{ background:var(--muted); }
+.is-yes .tz-mark{ background:var(--accent); }
+.tz-bar{ display:flex; gap:3px; height:30px; margin-top:9px; }
+.tz-whole{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  background:var(--surface-3); border:1px dashed var(--line);
+  border-radius:5px; font-size:11.5px; font-weight:700; color:#63656d; /* surface-3背景でも4.5:1を満たす専用色 */
+}
+.tz-seg{
+  position:relative; display:block; border-radius:4px; overflow:hidden;
+  background:var(--series-keep); min-width:6px;
+}
+.tz-seg i{ position:absolute; left:0; right:0; top:0; display:block; background:var(--series-ai); }
+.tz-note{ display:block; margin-top:8px; font-size:12.5px; color:var(--muted); line-height:1.7; }
+.is-yes .tz-note{ color:var(--ink-2); font-weight:600; }
+.tz-legend{
+  display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px;
+  margin-top:16px; padding-top:14px; border-top:1px solid var(--line-soft);
+  font-size:11.5px; font-weight:700; color:var(--ink-2);
+}
+.tz-legend span{ display:inline-flex; align-items:center; gap:6px; }
+.tz-legend i{ width:11px; height:11px; border-radius:3px; flex:none; }
+.sw-ai{ background:var(--series-ai); }
+.sw-keep{ background:var(--series-keep); }
+.tz-legend-n{ color:var(--muted); font-weight:500; }
+
 .hero-scope{
   margin-top:24px; font-size:13.5px; line-height:1.9; color:var(--muted);
   max-width:36em;
@@ -556,6 +628,16 @@ html{ scroll-behavior:smooth; }
 .step-main{ min-width:0; }
 .step-name{ font-size:14.5px; font-weight:700; line-height:1.55; }
 .step-desc{ font-size:12.5px; color:var(--ink-2); margin-top:4px; line-height:1.75; }
+/* 工程バー。長さ＝業務に占める比率、塗り＝渡す／残る */
+.stepbar{
+  display:flex; height:9px; gap:2px; margin-top:9px;
+  min-width:24px; max-width:100%;
+}
+.stepbar span{ display:block; border-radius:3px; }
+.sb-keep{ background:var(--series-keep); }
+.sb-ai{ background:var(--series-ai); }
+.stepbar span:only-child{ border-radius:3px; }
+
 .step-why{
   font-size:12.5px; margin-top:8px; padding:9px 12px; border-radius:8px;
   background:var(--series-keep-soft); color:#31488a; line-height:1.75;
@@ -869,7 +951,8 @@ html{ scroll-behavior:smooth; }
      ========================================================= -->
 <section id="s-intro" class="screen is-active">
   <div class="hero">
-    <div class="wrap">
+    <div class="wrap hero-in">
+      <div class="hero-l">
       <span class="hero-badge"><span class="dot"></span>管理職向け・所要3分・無料・登録不要</span>
       <h1>AIに渡すのは<br><span class="em">業務</span>じゃない、<span class="em">工程</span>です。</h1>
       <p class="lede">
@@ -878,6 +961,13 @@ html{ scroll-behavior:smooth; }
         業務を工程に割ると、文脈が要る工程と、要らない工程に分かれます。
         この診断は、その線を引きます。
       </p>
+      <dl class="hero-stats">
+        <div><dt>27</dt><dd>工程に分解</dd></div>
+        <div><dt>4軸</dt><dd>ルーブリックで代替率を判定</dd></div>
+        <div><dt>0件</dt><dd>外部通信</dd></div>
+      </dl>
+      </div><!-- /hero-l -->
+      <div class="hero-r">
       <div class="hero-fail">
         <p class="hero-fail-q">
           「週報を全部コピーして、ChatGPTに<b>『要約して』</b>と入れた。<br>
@@ -889,6 +979,34 @@ html{ scroll-behavior:smooth; }
           この診断は、そこで何を頼むべきだったかまで出します。
         </p>
       </div>
+      <!-- 主張を1枚の絵にする。装飾ではなく、これが結論そのもの -->
+      <figure class="thesis">
+        <div class="tz-row is-no">
+          <span class="tz-head"><span class="tz-mark">×</span>業務まるごと渡す</span>
+          <div class="tz-bar"><span class="tz-whole">週報の取りまとめ　週2時間</span></div>
+          <span class="tz-note">返ってくるのは、当たり障りのない要約</span>
+        </div>
+        <div class="tz-row is-yes">
+          <span class="tz-head"><span class="tz-mark">○</span>工程で切って渡す</span>
+          <div class="tz-bar">
+            <span class="tz-seg" style="flex:12"><i style="height:0%"></i></span>
+            <span class="tz-seg" style="flex:20"><i style="height:55%"></i></span>
+            <span class="tz-seg" style="flex:15"><i style="height:30%"></i></span>
+            <span class="tz-seg" style="flex:33"><i style="height:80%"></i></span>
+            <span class="tz-seg" style="flex:15"><i style="height:45%"></i></span>
+            <span class="tz-seg" style="flex:5"><i style="height:0%"></i></span>
+          </div>
+          <span class="tz-note">渡せる工程だけが、はっきり分かれる</span>
+        </div>
+        <figcaption class="tz-legend">
+          <span><i class="sw-ai"></i>AIに渡せる部分</span>
+          <span><i class="sw-keep"></i>あなたに残る部分</span>
+          <span class="tz-legend-n">※ 実際の数字は、あなたの回答から計算します</span>
+        </figcaption>
+      </figure>
+      </div><!-- /hero-r -->
+      <div class="hero-b">
+
       <p class="hero-scope">
         対象は<b>週報の取りまとめ／会議資料／評価コメント／稟議書／部門数字の説明</b>の5業務。
         担当しているものだけ選べば、その業務の設問だけが出ます。
@@ -905,6 +1023,7 @@ html{ scroll-behavior:smooth; }
         </button>
         <p class="hero-note">回答はブラウザの中だけで処理されます。送信も保存もされません。</p>
       </div>
+      </div><!-- /hero-b -->
     </div>
   </div>
 
@@ -2298,14 +2417,25 @@ function renderPriority(R){
    ------------------------------------------------------------------------ */
 function renderSteps(r, opts){
   opts = opts || {};
+  /* 工程ごとに、長さ＝その工程が業務に占める比率、塗り分け＝渡す／残る のバーを引く。
+     6本並べると、業務まるごとが1枚の絵になる。表を読まなくても、どこが太いか分かる。 */
+  const maxShare = Math.max.apply(null, r.steps.map(function(s){ return s.share; })) || 1;
   const rows = r.steps.map(function(s, i){
     const v = VERDICT[s.verdict];
     const zero = s.def.aiRate === 0;
+    const w      = (s.share / maxShare) * 100;
+    const aiPct  = s.cur > 0 ? (s.saved / s.cur) * 100 : 0;
+    const keepPct= 100 - aiPct;
     return '<div class="step-row">' +
       '<span class="step-n">' + (i + 1) + '</span>' +
       '<div class="step-main">' +
         '<div class="step-name">' + esc(s.def.n) + '</div>' +
         '<div class="step-desc">' + esc(s.def.d) + '</div>' +
+        '<div class="stepbar" style="width:' + Math.max(w, 4) + '%" role="img" aria-label="' +
+          esc(s.def.n + '：自分に残る ' + fmtMin(s.keep) + '、AIに渡せる ' + fmtMin(s.saved)) + '">' +
+          '<span class="sb-keep" style="width:' + keepPct + '%"></span>' +
+          (aiPct > 0 ? '<span class="sb-ai" style="width:' + aiPct + '%"></span>' : '') +
+        '</div>' +
         (opts.why !== false ? '<div class="step-why">' + s.def.why + '</div>' : '') +
       '</div>' +
       '<div class="step-right">' +
@@ -2671,6 +2801,15 @@ function renderBasis(R, top){
       'ここは測定値ではないので、「いちばん重い工程」の設問と部下人数で補正をかけています。' +
       '合計は必ず100%になるように正規化しています。</p>' +
     '</div>' +
+    '<div class="acc" data-acc>' +
+      '<button class="acc-btn" aria-expanded="false">' +
+        '<span class="acc-txt">' +
+          '<span class="acc-name">さらに細かく：回答の効き方・業務ごとの結果・濃淡の理由・この見積もりの限界</span>' +
+          '<span class="acc-meta">4項目。数字の出どころを最後まで確かめたい方へ</span>' +
+        '</span>' +
+        '<span class="acc-chev">' + ICON.chev + '</span>' +
+      '</button>' +
+      '<div class="acc-panel">' +
     '<div class="calcbox">' +
       '<h4>3. あなたの回答が、どこに効いたか</h4>' +
       '<div class="tbl-scroll"><table class="tbl">' +
@@ -2707,6 +2846,8 @@ function renderBasis(R, top){
       '・AI代替率はルーブリックから導いていますが、<b>各軸の点数を付けたのは私です。</b>点数の付け方には判断が入ります。上の表を見て違うと思ったら、そこがあなたの職場との差です。<br>・代替率は「指示が適切に書けている場合」の値です。だから、率だけでなく指示そのものを一緒に配っています。<br>' +
       '・削減された時間がそのまま空くとは限りません。空いた時間に別の業務が入るのが管理職の常です。' +
       'この数字は「取り戻せる上限」であって、「自動的に増える自由時間」ではありません。</p>' +
+    '</div>' +
+      '</div>' +
     '</div>';
 }
 
@@ -2772,7 +2913,7 @@ function renderResult(R){
     ['sec-plan',   '来週の手順'],
     (rest.length ? ['sec-rest', '残り' + rest.length + '業務'] : null),
     ['sec-env',    '環境の注意'],
-    ['sec-basis',  '算出根拠']
+    ['sec-basis',  '算出根拠（付録）']
   ].filter(Boolean);
   h += '<nav class="rnav" aria-label="結果の目次"><div class="rnav-in">' +
     nav.map(function(x){
@@ -2869,20 +3010,6 @@ function renderResult(R){
     '<h2>あなたの環境で気をつけること</h2></div>' +
     renderConfNote(R) + '</section>';
 
-  /* 根拠 */
-  h += '<section class="sec" id="sec-basis">' +
-    '<div class="sec-head"><span class="sec-no">0' + (rest.length ? 8 : 7) + '</span>' +
-    '<h2>この数字はどう出したか</h2></div>' +
-    '<p class="sec-lede">納得できない数字は、使われません。計算式も、あなたの回答がどこに効いたかも、全部開きます。</p>' +
-    renderBasis(R, top) + '</section>';
-
-  /* シェア用の値を確定させておく */
-  SHARE = {
-    total: R.total, useAnnual: R.total < 15,
-    topName: top.job.short, bigStep: bigStep.def.n, keepStep: humanStep.def.n,
-    url: shareUrl()
-  };
-
   /* 締め */
   h += '<section class="sec">' +
     '<div class="closing">' +
@@ -2903,6 +3030,20 @@ function renderResult(R){
       '</p>' +
     '</div>' +
   '</section>';
+
+  /* 根拠 */
+  h += '<section class="sec" id="sec-basis">' +
+    '<div class="sec-head"><span class="sec-no">0' + (rest.length ? 8 : 7) + '</span>' +
+    '<h2>この数字はどう出したか</h2></div>' +
+    '<p class="sec-lede">納得できない数字は、使われません。計算式も、あなたの回答がどこに効いたかも、全部開きます。</p>' +
+    renderBasis(R, top) + '</section>';
+
+  /* シェア用の値を確定させておく */
+  SHARE = {
+    total: R.total, useAnnual: R.total < 15,
+    topName: top.job.short, bigStep: bigStep.def.n, keepStep: humanStep.def.n,
+    url: shareUrl()
+  };
 
   /* シェア */
   h += '<section class="sec">' + renderShare() + '</section>';
