@@ -47,6 +47,7 @@
   --accent-2:    #a3350a;  /* 押し込み・濃い文字 */
   --accent-soft: #fbeee6;
   --accent-line: #f0cdb6;
+  --on-dark:     #ffffff;
 
   /* データ系列（dataviz 検証済み／白地：CVD ΔE 15.3・通常視 ΔE 26.9・コントラスト 3:1 以上） */
   --series-keep: #3b5ba9;  /* インディゴ = 自分に残る時間 */
@@ -199,12 +200,12 @@ img{ max-width:100%; }
   display:flex; align-items:center; gap:7px;
   font-size:13px; font-weight:800; color:var(--ink-2);
 }
-.tz-mark{
-  display:inline-grid; place-items:center; width:18px; height:18px;
-  border-radius:50%; font-size:11px; font-weight:900; color:#fff; flex:none;
+.tz-status{
+  display:inline-block; flex:none; padding:2px 7px; border-radius:4px;
+  font-size:10.5px; font-weight:800; letter-spacing:.04em;
 }
-.is-no  .tz-mark{ background:var(--muted); }
-.is-yes .tz-mark{ background:var(--accent); }
+.is-no  .tz-status{ background:var(--surface-3); color:var(--muted); }
+.is-yes .tz-status{ background:var(--accent-soft); color:var(--accent-2); }
 .tz-bar{ display:flex; gap:3px; height:30px; margin-top:9px; }
 .tz-whole{
   flex:1; display:flex; align-items:center; justify-content:center;
@@ -270,6 +271,20 @@ img{ max-width:100%; }
 
 .hero-cta{ margin-top:26px; }
 .hero-note{ margin-top:11px; font-size:12.5px; color:var(--muted); }
+
+/* 375pxでは見出しの nowrap が親要素の最小幅を押し広げ、本文・指標・カードまで
+   画面外へ切れていた。モバイルでは行の固定を解除し、全ブロックを親幅に収める。 */
+@media (max-width:620px){
+  .hero{ padding-top:30px; }
+  .hero-in,.hero-l,.hero-r,.hero-b{ min-width:0; }
+  .hero h1 .em{ white-space:normal; }
+  .hero-stats{ width:100%; max-width:100%; }
+  .hero-stats div{ padding-right:8px; }
+  .hero-stats div + div{ padding-left:9px; }
+  .hero-stats dt{ font-size:20px; }
+  .hero-stats dd{ font-size:10.5px; overflow-wrap:anywhere; }
+  .hero-fail,.thesis{ width:100%; max-width:100%; padding-left:16px; padding-right:16px; }
+}
 
 /* イントロ下：3ステップ */
 .how{ padding:34px 0 46px; }
@@ -615,6 +630,20 @@ html{ scroll-behavior:smooth; }
 
 /* --- 工程分解テーブル --- */
 .steps{ display:grid; gap:0; }
+.step-legend{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  margin-bottom:12px; padding:10px 12px; border-radius:8px;
+  background:var(--surface-2); border:1px solid var(--line-soft);
+  font-size:12.5px; color:var(--ink-2); line-height:1.6;
+}
+.step-legend-item{ display:inline-flex; align-items:center; gap:7px; }
+.step-legend-item b{ color:var(--ink); }
+.step-legend-swatch{ width:12px; height:12px; border-radius:3px; flex:none; }
+.step-legend-swatch.keep{ background:var(--series-keep); }
+.step-legend-swatch.ai{ background:var(--series-ai); }
+@media (max-width:560px){
+  .step-legend{ display:grid; gap:6px; }
+}
 .step-row{
   display:grid; grid-template-columns:auto 1fr auto; gap:13px; align-items:start;
   padding:14px 0; border-top:1px solid var(--line-soft);
@@ -803,6 +832,25 @@ html{ scroll-behavior:smooth; }
 .ramp-n b{ color:var(--ink); }
 .ramp-f{ font-size:12px; color:var(--muted); margin-top:11px; line-height:1.75; }
 .ramp-f b{ color:var(--ink-2); }
+.measure{
+  margin-top:12px; padding:16px 17px; border-radius:var(--radius-sm);
+  background:var(--surface); border:1.5px solid var(--series-keep); box-shadow:var(--shadow-1);
+}
+.measure-t{ font-size:14.5px; font-weight:800; }
+.measure-s{ margin-top:4px; font-size:12.5px; color:var(--ink-2); line-height:1.75; }
+.measure ol{ margin-top:11px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; counter-reset:ms; }
+.measure li{
+  counter-increment:ms; position:relative; padding:10px 10px 10px 36px;
+  background:var(--surface-2); border:1px solid var(--line-soft); border-radius:8px;
+  font-size:12px; color:var(--ink-2); line-height:1.65;
+}
+.measure li::before{
+  content:counter(ms); position:absolute; left:10px; top:11px; width:18px; height:18px;
+  border-radius:5px; display:grid; place-items:center; background:var(--series-keep); color:var(--on-dark);
+  font-size:10px; font-weight:800;
+}
+.measure b{ color:var(--ink); }
+@media (max-width:620px){ .measure ol{ grid-template-columns:1fr; } }
 
 /* --- アコーディオン --- */
 .acc{
@@ -835,6 +883,13 @@ html{ scroll-behavior:smooth; }
 }
 .calcbox h4{ font-size:13px; font-weight:800; color:var(--ink); margin-bottom:7px; }
 .calcbox + .calcbox{ margin-top:11px; }
+.source-list{ display:grid; gap:9px; margin-top:10px; }
+.source-list li{ padding-left:16px; position:relative; }
+.source-list li::before{
+  content:""; position:absolute; left:2px; top:.68em; width:5px; height:5px;
+  border-radius:50%; background:var(--accent);
+}
+.source-list a{ color:var(--accent-2); font-weight:700; text-underline-offset:2px; }
 .formula{
   font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size:12px; background:var(--surface); border:1px solid var(--line);
@@ -964,7 +1019,7 @@ html{ scroll-behavior:smooth; }
       <dl class="hero-stats">
         <div><dt>27</dt><dd>工程に分解</dd></div>
         <div><dt>4軸</dt><dd>ルーブリックで代替率を判定</dd></div>
-        <div><dt>0件</dt><dd>外部通信</dd></div>
+        <div><dt>0件</dt><dd>判定時の外部API</dd></div>
       </dl>
       </div><!-- /hero-l -->
       <div class="hero-r">
@@ -982,12 +1037,12 @@ html{ scroll-behavior:smooth; }
       <!-- 主張を1枚の絵にする。装飾ではなく、これが結論そのもの -->
       <figure class="thesis">
         <div class="tz-row is-no">
-          <span class="tz-head"><span class="tz-mark">×</span>業務まるごと渡す</span>
+          <span class="tz-head"><span class="tz-status">失敗しやすい</span>業務まるごと渡す</span>
           <div class="tz-bar"><span class="tz-whole">週報の取りまとめ　週2時間</span></div>
           <span class="tz-note">返ってくるのは、当たり障りのない要約</span>
         </div>
         <div class="tz-row is-yes">
-          <span class="tz-head"><span class="tz-mark">○</span>工程で切って渡す</span>
+          <span class="tz-head"><span class="tz-status">この診断</span>工程で切って渡す</span>
           <div class="tz-bar">
             <span class="tz-seg" style="flex:12"><i style="height:0%"></i></span>
             <span class="tz-seg" style="flex:20"><i style="height:55%"></i></span>
@@ -1129,7 +1184,9 @@ html{ scroll-behavior:smooth; }
    ========================================================================= */
 
 /* 習熟係数：AI代替率は「指示が適切に書けている場合の値」として置いてある。
-   したがって上限は 1.00 で、そこを超えることはない。慣れていない人はそこから割り引く。 */
+   したがって上限は 1.00 で、そこを超えることはない。慣れていない人はそこから割り引く。
+   0.70/0.85/0.95 は実証研究の推定値ではなく、利用経験の差を結果へ反映するための
+   保守的なシナリオ値。結果画面でもその境界を明記する。 */
 const SKILL = {
   none:  { k:0.70, label:'ほとんど使ったことがない' },
   tried: { k:0.85, label:'試したが期待外れだった' },
@@ -1138,7 +1195,8 @@ const SKILL = {
 };
 
 /* 機密係数：社内の生成AI利用ルール。
-   「実物を貼り付ける工程」だけに掛ける。骨子作りなど中身を貼らない工程には掛けない。 */
+   「実物を貼り付ける工程」だけに掛ける。骨子作りなど中身を貼らない工程には掛けない。
+   これも実証値ではなく、入力準備と利用制約による摩擦を比較するシナリオ値。 */
 const CONF = {
   official: { k:1.00, label:'会社契約のAIがあり業務利用OK' },
   personal: { k:0.92, label:'個人アカウント・ルールは曖昧' },
@@ -1302,7 +1360,7 @@ ${c.confLine}
   steps:[
     { n:'何を決める会議かを決める', d:'目的・ゴール・落としどころを固める',
       share:.15, sens:false,
-      why:'<b>ここが資料作成時間の総量を決めています。</b>決めたいことが曖昧なままAIに「アジェンダを作って」と頼むと、議題が5つに増えて資料も膨らみます。代替率5%は「言語化の壁打ち相手」としてのぶんで、<b>1つに絞る判断そのものは渡せません</b>。' },
+      why:'<b>ここが資料作成時間の総量を決めています。</b>決めたいことが曖昧なままAIに「アジェンダを作って」と頼むと、議題が5つに増えて資料も膨らみます。壁打ちは品質向上には使えますが、<b>1つに絞る判断時間は削れない</b>ため、削減は0で固定しています。' },
     { n:'情報・数字を集める',       d:'必要なデータを各所から引っ張ってくる',
       share:.20, sens:false,
       why:'<b>「何を集めるべきか」のリスト出しは渡せます</b>が、社内のどこにあるかを知っているのはあなたです。集める行為自体は残ります。' },
@@ -1355,7 +1413,7 @@ ${c.confLine}
 1. 冒頭3行で言う「この会議のゴール」
 2. 議題（最大4つ）。各議題に「所要時間」と「決めることか、共有だけか」を明記する
 3. 議題ごとに、事前に配っておくべき情報
-4. 想定される反対意見・懸念を3つ。それぞれに「準備しておくべき材料」を添える（Chain of Thought：結論より先に懸念を洗い出す）
+4. 想定される反対意見・懸念を3つ。それぞれに「準備しておくべき材料」を添える。検討過程は出力せず、懸念と必要な材料だけを書く
 5. 時間が押した場合に削る議題を、優先度の低い順に並べる
 
 読み手はこの資料を最後に読む${c.reader}です。トーンはそれに合わせてください。
@@ -1537,7 +1595,7 @@ ${c.confLine}`; } }
 
 ## 形式
 (1) 説明文（400字以内）：課題 → 対応案 → 効果 → 費用 の順で書く
-(2) 承認者から来そうな質問を5つ。厳しい順に並べる（Chain of Thought：厳しさを比較してから並べる）
+(2) 承認者から来そうな質問を5つ。厳しさを比較して並べる。比較過程は出力せず、順位・質問・理由だけを書く
 (3) 各質問への回答案（1問2行以内）。私の情報では答えられないものは「【要確認】」と書く
 
 ## Note（上級テクニック：Uncertainty・禁止事項）
@@ -1639,7 +1697,7 @@ ${c.confLine}`; } }
      D 誤りの重さ   見逃したときの損害（減点）
                     0=小さい 1=手直しで済む 2=信用に関わる 3=全部やり直し
 
-     代替率 = (A+B)/6 − (C+D)/6 × 0.55   を 0.05 刻みに丸め、0〜0.90 に収める
+     代替率 = (A+B)/6 − (C+D)/6 × 0.67   を 0.05 刻みに丸め、0〜0.90 に収める
 
    ただし次のいずれかに当たる工程は 0 で固定する。
      ・A=0 … 成果物が文章でない。AIに投げても減らない
@@ -1682,10 +1740,18 @@ const RUBRIC = {
             [0, 3, 1, 3],   /* 数字の検算・整合確認 */
             [3, 2, 1, 2] ]  /* 想定質問の準備 */
 };
+/* 減点係数 0.67：Noy & Zhang (Science, 2023) の専門職文章作成「平均40%短縮」を
+   今回の文章中心5業務の外部校正点に採用。連続式で平均40%に合わせる解は0.638だが、
+   工程率を5ポイント刻みに丸めた後も5業務平均が40%を超えない最小の0.01単位が0.67。
+   0.05刻みは偽精度を避ける表示設計、0.90上限は最低10%の人手確認を残す安全設計であり、
+   この2値は実証研究の推定値ではない。 */
+const RATE_RISK_WEIGHT = 0.67;
+const RATE_STEP = 0.05;
+const RATE_CAP = 0.90;
 function deriveRate(A, B, C, D){
   if (A === 0 || C === 3 || D === 3) return 0;
-  const raw = (A + B) / 6 - ((C + D) / 6) * 0.55;
-  return Math.max(0, Math.min(0.90, Math.round(raw / 0.05) * 0.05));
+  const raw = (A + B) / 6 - ((C + D) / 6) * RATE_RISK_WEIGHT;
+  return Math.max(0, Math.min(RATE_CAP, Math.round(raw / RATE_STEP) * RATE_STEP));
 }
 /* 各工程に、ルーブリックの点数と、そこから導いた代替率を持たせる */
 JOBS.forEach(function(j){
@@ -1970,7 +2036,7 @@ function buildQueue(){
 
 const WEEKS_PER_MONTH = 4.33;   /* 12か月 ÷ 52週 */
 const WEEKS_PER_HALF  = 26;     /* 半期 */
-const SETUP_MIN       = 25;     /* 初回のプロンプト調整（業務あたり・分）。画面の3か所で同じ値を使う */
+const SETUP_MIN       = 25;     /* 初回調整20〜30分という設計レンジの中央値。実証値ではなく回収比較用 */
 const WORK_WEEKS      = 46;     /* 年換算に使う稼働週数（有給・年末年始・祝日週を控除した控えめな値） */
 const HOURS_PER_DAY   = 8;
 
@@ -2084,9 +2150,7 @@ function compute(){
     annualH: total * WORK_WEEKS / 60,
     annualD: total * WORK_WEEKS / 60 / HOURS_PER_DAY,
     skill: skill, conf: conf, skillOpt: skillOpt, confLabel: confLabel(),
-    skillKey: skillKey, confKey: confKey,
-    /* 立ち上がりコスト：業務あたり25分の初期調整 × 2週 */
-    setupMin: rows.length * SETUP_MIN
+    skillKey: skillKey, confKey: confKey
   };
 }
 
@@ -2336,10 +2400,10 @@ function renderHero(R){
             '下までご覧いただいたあと、業務を選び直してもう一度試してみてください。</div>' +
           '</div>'
         : '<div class="r-honest">' + ICON.warn +
-            '<div><b>初週からこの数字にはなりません。</b>' +
-            '1〜2週目は、プロンプトを自分の職場の言い方に合わせる調整で、業務あたり約' + SETUP_MIN + '分（合計 約' +
-            fmtMin(R.setupMin) + '）かかります。上の数字に乗るのは3週目からです。' +
-            'そう出ないツールは、たぶん盛っています。</div>' +
+            '<div><b>初回からこの数字にはなりません。</b>' +
+            '最初は、プロンプトを自分の職場の言い方に合わせる調整に、最優先の1業務で約' + SETUP_MIN + '分を見込んでいます。' +
+            '週次・月次・半期では次の実施日が違うため、一律に「3週目から」とは置きません。' +
+            '下で、実際の発生単位ごとに回収時点を示します。</div>' +
           '</div>') +
     '</div>';
 }
@@ -2404,7 +2468,7 @@ function renderPriority(R){
     return '<div class="pri-card' + (top ? ' is-top' : '') + '">' +
       '<span class="pri-rank">' + (i + 1) + '</span>' +
       '<div class="pri-main">' +
-        (top ? '<span class="pri-flag">最優先 ／ 来週ここから</span>' : '') +
+        (top ? '<span class="pri-flag">最優先 ／ 次にここから</span>' : '') +
         '<div class="pri-name">' + esc(r.job.name) + '</div>' +
         '<p class="pri-why">' + esc(r.job.easeWhy) + '。' + esc(r.job.nextIn) + '。' +
           '削減率は<b>' + Math.round(r.ratio * 100) + '%</b>' +
@@ -2464,7 +2528,15 @@ function renderSteps(r, opts){
     '</div>';
   }).join('');
 
-  return '<div class="card"><div class="steps">' + rows + '</div>' +
+  const legend = opts.legend
+    ? '<div class="step-legend" aria-label="工程バーの凡例">' +
+        '<span class="step-legend-item"><span class="step-legend-swatch keep"></span>' +
+          '<span><b>青</b>＝自分に残す時間</span></span>' +
+        '<span class="step-legend-item"><span class="step-legend-swatch ai"></span>' +
+          '<span><b>赤茶（オレンジ）</b>＝AIに渡せる時間</span></span>' +
+      '</div>'
+    : '';
+  return '<div class="card">' + legend + '<div class="steps">' + rows + '</div>' +
     '<div class="steps-sum">' +
       '<span class="l">' + esc(r.job.short) + '　週' + fmtMin(r.weekly) + ' のうち</span>' +
       '<span class="v">AIに渡せる <b>' + fmtMin(r.saved) + '</b>' +
@@ -2532,7 +2604,7 @@ function renderOpenLinks(R){
       '<div><b>貼り先のリンクは、意図的に出していません。</b>' +
       '社内規程で生成AIの業務利用が禁止されている、と回答されているためです。' +
       'まず会社が用意した環境があるかを確認してください。無い場合は、' +
-      '下の「あなたの環境で気をつけること」に、規程に触れずに進める順番を書いています。</div></div>';
+      '下の「あなたの環境で気をつけること」に、利用可否を正式に確認する順番を書いています。</div></div>';
   }
   const warn = R.confKey === 'personal'
     ? '個人アカウントでの利用と回答されています。<b>「学習に使わせない設定」だけ先に確認</b>してから貼ってください。'
@@ -2556,15 +2628,20 @@ function renderOpenLinks(R){
 }
 
 /* ---------------------------------------------------------------------------
-   結果：来週の手順
+   結果：最優先業務の実行手順
    ------------------------------------------------------------------------ */
 function renderPlan(r, R){
-  /* 初回の手順だけ見せて終わると「で、いつから効くのか」に答えられない。
-     立ち上がりの3週間を、実際の数字で出す。1週目がマイナスでも、そう書く。 */
+  /* 週次・月次・半期をすべて「週」で扱うと、発生していない週にも効果が出たように見える。
+     実際の発生単位（週／月／半期）で、初期調整を何回目に回収できるかを示す。 */
   const setup = SETUP_MIN;
-  const w1 = r.saved * 0.4 - setup;
-  const w2 = r.saved * 0.7;
-  const w3 = r.saved;
+  const firstNet = r.occSaved - setup;
+  const steady = r.occSaved;
+  const breakEvenRun = r.occSaved > 0 ? Math.ceil(setup / r.occSaved) : null;
+  const breakEvenText = breakEvenRun == null
+    ? 'この回答では、初期調整ぶんを回収できません'
+    : breakEvenRun === 1
+      ? '初期調整ぶんは、初回の実施で回収できる見込みです'
+      : '初期調整ぶんを通算で取り戻す目安は、第' + breakEvenRun + '回の実施時点です';
   const row = function(when, min, note){
     const minus = min < 0;
     return '<tr>' +
@@ -2586,15 +2663,25 @@ function renderPlan(r, R){
   '<div class="card ramp">' +
     '<p class="ramp-t">この業務が、いつから効いてくるか</p>' +
     '<div class="tbl-scroll"><table class="tbl">' +
-      '<thead><tr><th>いつ</th><th>浮く時間</th><th>その週に起きること</th></tr></thead><tbody>' +
-        row('1週目', w1, 'プロンプトを自分の職場の言い方に直す週。<b>ここは増えます。</b>') +
-        row('2週目', w2, '手直しが減り、7割ほどが乗ってきます') +
-        row('3週目〜', w3, '<b>上のヒーロー数字はここです。</b>ここから毎週続きます') +
+      '<thead><tr><th>いつ</th><th>差し引き</th><th>その回に起きること</th></tr></thead><tbody>' +
+        row('初回', firstNet, '削減見込み ' + fmtMin(r.occSaved) + ' から、初期調整 ' + fmtMin(setup) + ' を差し引き') +
+        row('2回目以降', steady, '<b>' + esc(r.occ.unit) + 'の定着後見込み。</b>ヒーロー数字はこのペースを換算しています') +
       '</tbody></table></div>' +
-    '<p class="ramp-f">1週目のマイナスは、' + fmtMin(setup) + 'の初期調整ぶんです。' +
-      '<b>3週目までに取り返します</b>（累計で' +
-      fmtMin(Math.max(0, w1 + w2 + w3)) + '）。' +
-      'ここを隠して「初週から◯時間」と書くツールもありますが、そうはなりません。</p>' +
+    '<p class="ramp-f">初回の数字には、' + fmtMin(setup) + 'の初期調整を含めています。' +
+      '<b>' + breakEvenText + '。</b>' +
+      '40%・70%のような根拠のない定着率は置いていません。' +
+      '<b>25分は実測値ではなく、初回調整を20〜30分とする設計レンジの中央値です。</b>' +
+      '回収時点の比較だけに使い、上部の定着後削減時間には含めていません。</p>' +
+  '</div>' +
+
+  '<div class="measure">' +
+    '<p class="measure-t">2回だけ計って、見積もりをあなたの実測値に変える</p>' +
+    '<p class="measure-s">研究値は出発点です。職場で本当に浮いた時間は、次の2回で確定できます。</p>' +
+    '<ol>' +
+      '<li><b>次回</b><br>開始と終了の時刻をメモする</li>' +
+      '<li><b>2回目</b><br>同じ範囲をもう一度計る</li>' +
+      '<li><b>置き換える</b><br>' + fmtMin(r.occ.min) + ' − 2回目の実時間 ＝ あなたの削減時間</li>' +
+    '</ol>' +
   '</div>' +
 
   '<div class="note info" style="margin-top:11px">' + ICON.warn +
@@ -2768,9 +2855,9 @@ function renderBasis(R, top){
     '</div>' +
     '<div class="calcbox">' +
       '<h4>2. AI代替率は、どうやって決めたか</h4>' +
-      '<p>ここがこの診断のいちばん大事なところです。代替率は<b>手で置いていません。</b>' +
+      '<p>ここがこの診断のいちばん大事なところです。<b>各工程の代替率を直接置くのではなく、</b>' +
       '工程ごとに次の4問へ点数（0〜3点）を付け、式で導いています。' +
-      'だから「なぜこの率か」を工程ごとに説明できますし、こちらの都合で動かせません。</p>' +
+      'ただし、4軸の点数と式の係数は本診断の設計判断です。文献からそのまま引用した数式ではありません。</p>' +
       '<div class="tbl-scroll"><table class="tbl">' +
         '<thead><tr><th>軸</th><th>問い</th><th>0点</th><th>3点</th></tr></thead><tbody>' +
         '<tr><td><b>A</b> 出力の型</td><td>成果物は文章か</td>' +
@@ -2782,7 +2869,7 @@ function renderBasis(R, top){
         '<tr><td><b>D</b> 誤りの重さ</td><td>見逃したときの損害</td>' +
           '<td>小さい</td><td>間違えたら全部やり直し</td></tr>' +
       '</tbody></table></div>' +
-      '<div class="formula">代替率 = (A+B)/6 − (C+D)/6 × 0.55\n' +
+      '<div class="formula">代替率 = (A+B)/6 − (C+D)/6 × ' + RATE_RISK_WEIGHT.toFixed(2) + '\n' +
       '         （0.05刻みに丸め、0〜0.90に収める）\n\n' +
       'ただし次は 0 で固定する\n' +
       '  A=0 … 成果物が文章でない。AIに投げても減らない\n' +
@@ -2811,6 +2898,62 @@ function renderBasis(R, top){
       'ここは測定値ではないので、「いちばん重い工程」の設問と部下人数で補正をかけています。' +
       '合計は必ず100%になるように正規化しています。</p>' +
     '</div>' +
+    '<div class="calcbox">' +
+      '<h4>3. この式の根拠と、独自に決めた部分</h4>' +
+      '<p><b>先に結論：</b>式そのものと各工程の採点は本診断独自です。ただし、減点係数は自由に置かず、' +
+      '専門職の文章作成で実測された<b>平均40%短縮</b>を外部校正点にして、' +
+      '<b>5業務の標準削減率の平均が40%を超えない</b>よう0.67へ再校正しました。</p>' +
+      '<div class="tbl-scroll"><table class="tbl">' +
+        '<thead><tr><th>考え方</th><th>参照した情報</th><th>本診断への落とし込み</th></tr></thead><tbody>' +
+        '<tr><td>職種ではなく、タスク単位でAI影響をみる</td>' +
+          '<td>OpenAI「GPTs are GPTs」、ILO「Generative AI and Jobs」</td>' +
+          '<td>業務を5〜6工程へ分解し、工程ごとに率を出す</td></tr>' +
+        '<tr><td>全面自動化より、人を補助する使い方を重視する</td>' +
+          '<td>ILOは、主な影響は職業全体の自動化より augmentation になる可能性を指摘</td>' +
+          '<td>「渡す／半分渡す／自分でやる」に分ける</td></tr>' +
+        '<tr><td>人とAIの責任・監督を明確にする</td>' +
+          '<td>NIST AI RMF Govern 3.2、OECD AI Principle 1.5</td>' +
+          '<td>C「判断と責任」を減点軸にし、C=3は0で固定</td></tr>' +
+        '<tr><td>誤りの影響が大きいほど、人の確認を厚くする</td>' +
+          '<td>NIST AI RMF「Framing Risk」「AI Risks and Trustworthiness」</td>' +
+          '<td>D「誤りの重さ」を減点軸にし、D=3は0で固定</td></tr>' +
+        '<tr><td>専門職の文章作成における時間短縮</td>' +
+          '<td>Noy &amp; Zhang（Science, 2023）：平均40%短縮、品質18%向上</td>' +
+          '<td>5業務の標準削減率の平均を40%以下へ校正</td></tr>' +
+      '</tbody></table></div>' +
+      '<div class="formula">外部校正点：専門職の文章作成は平均40%短縮（Noy &amp; Zhang, 2023）\n' +
+      '連続式で平均40%に合わせる減点係数：0.638\n' +
+      '5%刻みへ丸めた後も平均40%以下となる最小の0.01単位：0.67\n' +
+      '再校正後の5業務平均：39.96%（各業務を同じ重み／追加の回答係数を掛ける前）\n\n' +
+      '本診断独自：式の形／0.05刻み／上限0.90／各工程のA〜D採点\n' +
+      '0.90 ＝ AIだけで完了したとみなさず、最低10%は人の確認として残す上限\n' +
+      '0.05刻み ＝ 実測データのない見積もりで、1%単位の精密さを装わないため\n\n' +
+      '回答に応じる独自シナリオ値：\n' +
+      '習熟係数 0.70／0.85／0.95／1.00\n' +
+      '機密係数 1.00／0.92／0.78／0.55（実物を貼る工程だけ）\n' +
+      '初期調整 25分（20〜30分と置いた比較レンジの中央値）\n' +
+      'これらは実証研究から推定した値ではなく、回答差を保守的に反映する比較用の仮定</div>' +
+      '<p style="margin-top:9px"><b>40%を万能値として使っているわけではありません。</b>' +
+      '同研究の課題は社内固有の文脈や厳密な事実確認を必要としませんでした。そこで本診断は、' +
+      '判断・責任・検算をC／D軸で減点し、重大工程は0に固定しています。' +
+      '5業務を同じ重みにしたのは、対象企業における各業務の発生構成比が提示されていないためです。' +
+      '別研究では、AI能力の範囲内のコンサル業務で25.1%高速化、顧客対応で14%の生産性向上と幅があるため、' +
+      '表示値は保証値ではなく、本人の実測時間から作る着手前の見積もりです。</p>' +
+      '<ul class="source-list">' +
+        '<li><a href="https://doi.org/10.1126/science.adh2586" target="_blank" rel="noopener noreferrer">Noy &amp; Zhang, Science（2023）</a> — 専門職の文章作成で平均時間40%短縮・品質18%向上</li>' +
+        '<li><a href="https://www.hbs.edu/ris/download.aspx?name=24-013.pdf" target="_blank" rel="noopener noreferrer">Dell’Acqua et al., HBS Working Paper</a> — AI能力範囲内で25.1%高速化、範囲外では正答率が低下</li>' +
+        '<li><a href="https://www.nber.org/papers/w31161" target="_blank" rel="noopener noreferrer">Brynjolfsson et al., NBER Working Paper 31161</a> — 顧客対応で平均14%の生産性向上</li>' +
+        '<li><a href="https://www.nber.org/papers/w33795" target="_blank" rel="noopener noreferrer">Dillon et al., NBER Working Paper 33795</a> — メール・会議・文章作成で利用者は週2時間減</li>' +
+        '<li><a href="https://openai.com/index/gpts-are-gpts/" target="_blank" rel="noopener noreferrer">OpenAI, GPTs are GPTs（2023）</a> — タスク単位のLLM影響をルーブリックで評価</li>' +
+        '<li><a href="https://www.ilo.org/publications/generative-ai-and-jobs-global-analysis-potential-effects-job-quantity-and" target="_blank" rel="noopener noreferrer">ILO Working Paper 96（2023）</a> — 自動化より補助が中心になる可能性</li>' +
+        '<li><a href="https://www.ilo.org/publications/generative-ai-and-jobs-refined-global-index-occupational-exposure" target="_blank" rel="noopener noreferrer">ILO Working Paper 140（2025）</a> — タスクデータ・就業者・専門家による評価</li>' +
+        '<li><a href="https://airc.nist.gov/airmf-resources/airmf/5-sec-core/" target="_blank" rel="noopener noreferrer">NIST AI RMF Core</a> ／ ' +
+          '<a href="https://airc.nist.gov/airmf-resources/airmf/appendices/app-c-ai-risk-management-and-human-ai-interaction/" target="_blank" rel="noopener noreferrer">Human-AI Interaction</a> — 監督・役割・責任</li>' +
+        '<li><a href="https://airc.nist.gov/airmf-resources/airmf/1-sec-risk/" target="_blank" rel="noopener noreferrer">NIST AI RMF, Framing Risk</a> ／ ' +
+          '<a href="https://oecd.ai/en/dashboards/ai-principles/P9?s=03" target="_blank" rel="noopener noreferrer">OECD AI Principle: Accountability</a> — 影響度と説明責任</li>' +
+      '</ul>' +
+      '<p style="margin-top:9px">参照日：2026年8月16日。リンクを開かなくても判定は動きます。外部通信は、リンクを押したときだけ発生します。</p>' +
+    '</div>' +
     '<div class="acc" data-acc>' +
       '<button class="acc-btn" aria-expanded="false">' +
         '<span class="acc-txt">' +
@@ -2821,7 +2964,7 @@ function renderBasis(R, top){
       '</button>' +
       '<div class="acc-panel">' +
     '<div class="calcbox">' +
-      '<h4>3. あなたの回答が、どこに効いたか</h4>' +
+      '<h4>4. あなたの回答が、どこに効いたか</h4>' +
       '<div class="tbl-scroll"><table class="tbl">' +
         '<thead><tr><th>設問</th><th>あなたの回答</th><th>効き方</th></tr></thead><tbody>' +
         inputs.map(function(x){
@@ -2830,7 +2973,7 @@ function renderBasis(R, top){
       '</tbody></table></div>' +
     '</div>' +
     '<div class="calcbox">' +
-      '<h4>4. 業務ごとの結果</h4>' +
+      '<h4>5. 業務ごとの結果</h4>' +
       '<div class="tbl-scroll"><table class="tbl">' +
         '<thead><tr><th>業務</th><th>現状(週)</th><th>削減(週)</th><th>削減率</th><th>削れない工程</th></tr></thead>' +
         '<tbody>' + perJob + '</tbody></table></div>' +
@@ -2838,7 +2981,7 @@ function renderBasis(R, top){
       '有給・年末年始・祝日の多い週を落とした、控えめな値です。</p>' +
     '</div>' +
     '<div class="calcbox">' +
-      '<h4>5. なぜ業務ごとに作り込みの深さを変えたか</h4>' +
+      '<h4>6. なぜ業務ごとに作り込みの深さを変えたか</h4>' +
       '<p>5業務を同じ深さで扱っていません。意図的です。<br>' +
       '<b>週報の取りまとめと会議資料の作成は、工程分解に加えて設問を2問ずつ置き、プロンプトを2本立て（材料出し → 文章化）にしました。</b>' +
       '週次で毎週発生し、管理職の時間をいちばん確実に削っているのがこの2つだからです。' +
@@ -2850,8 +2993,9 @@ function renderBasis(R, top){
       '<b>聞かないという判断も、設計のうちです。</b></p>' +
     '</div>' +
     '<div class="calcbox">' +
-      '<h4>6. この見積もりの限界</h4>' +
-      '<p>・工程比率は、業務内での<b>相対的な長さの想定値</b>です。代替率と違ってルーブリックからは導けないので、ここは私の判断です。あなたの職場では違う可能性があります。' +
+      '<h4>7. この見積もりの限界</h4>' +
+      '<p>・本作品はコンペ課題であり、対象企業の実職場データは提供されていません。<b>実職場で検証済みの予測モデルではなく、文献で外部校正した仮説モデル</b>です。だから、2回の計測で本人の実測値へ置き換える手順までを結果に含めています。<br>' +
+      '・工程比率は、業務内での<b>相対的な長さの想定値</b>です。代替率と違ってルーブリックからは導けないので、ここは私の判断です。あなたの職場では違う可能性があります。' +
       '「いちばん重い工程」の設問を置いているのは、そのズレを一部でも補正するためです。<br>' +
       '・AI代替率はルーブリックから導いていますが、<b>各軸の点数を付けたのは私です。</b>点数の付け方には判断が入ります。上の表を見て違うと思ったら、そこがあなたの職場との差です。<br>・代替率は「指示が適切に書けている場合」の値です。だから、率だけでなく指示そのものを一緒に配っています。<br>' +
       '・削減された時間がそのまま空くとは限りません。空いた時間に別の業務が入るのが管理職の常です。' +
@@ -2888,7 +3032,8 @@ function renderConfNote(R){
       '生成されたプロンプトには、仮名をそのまま扱うよう指示を追記済みです。</div></div>';
   }
   return '<div class="note crit">' + ICON.lock +
-    '<div><b>社内規程で禁止されている前提で、55%に割り引いて計算しました。</b>' +
+    '<div><b>社内規程で禁止されているため、表示値は承認後の参考ポテンシャルです。</b>' +
+    '実物を貼り付ける工程だけを、利用制約のシナリオ値として55%に割り引いています。' +
     'まず申し上げます——<b>規程は守ってください。</b>' +
     'このツールは、規程を迂回する方法を案内しません。上の数字は「もし使えたら」の見積もりです。<br><br>' +
     '<b>この状況で、あなたが今日できることは2つです。</b><br>' +
@@ -2911,6 +3056,7 @@ function renderResult(R){
   renderHero(R);
   const top = R.ranked[0];
   const rest = R.ranked.slice(1);
+  const isBanned = R.confKey === 'banned';
 
   let h = '';
 
@@ -2920,7 +3066,7 @@ function renderResult(R){
     ['sec-pri',    '優先順位'],
     ['sec-steps',  '工程分解'],
     ['sec-prompt', 'プロンプト'],
-    ['sec-plan',   '来週の手順'],
+    ['sec-plan',   '次の実施'],
     (rest.length ? ['sec-rest', '残り' + rest.length + '業務'] : null),
     ['sec-env',    '環境の注意'],
     ['sec-basis',  '算出根拠（付録）']
@@ -2942,11 +3088,13 @@ function renderResult(R){
   h += '<div class="gist">' +
     '<p class="gist-label">結論（ここだけ読めば動けます）</p>' +
     '<ol class="gist-list">' +
-      '<li><b>来週やるのは「' + esc(top.job.short) + '」の1つだけ。</b>' +
+      '<li><b>次に着手するのは「' + esc(top.job.short) + '」の1つだけ。</b>' +
         'ここで週' + fmtMin(top.saved) + 'が浮きます。</li>' +
       '<li><b>渡すのは「' + esc(bigStep.def.n) + '」工程（週' + fmtMin(bigStep.saved) + '）。</b>' +
         '渡さないのは「' + esc(humanStep.def.n) + '」——' + KEEP_CLAUSE[keepType] + '。</li>' +
-      '<li><b>今日やることは、下の' + promptRef(top.job) + 'をコピーしておくことだけ。</b></li>' +
+      (isBanned
+        ? '<li><b>今日やることは、社内AIの有無と入力可能情報の範囲を、情報システム部門か上長に確認することだけ。</b>プロンプトは承認後用です。</li>'
+        : '<li><b>今日やることは、下の' + promptRef(top.job) + 'をコピーしておくことだけ。</b></li>') +
     '</ol>' +
   '</div>';
 
@@ -2969,22 +3117,29 @@ function renderResult(R){
     '<h2>最優先：' + esc(top.job.name) + '</h2></div>' +
     '<p class="sec-lede">この業務を' + top.job.steps.length + '工程に割りました。' +
     '各工程の「渡す／半分渡す／自分でやる」の判定と、その理由です。' +
-    '時間はあなたが申告した週' + fmtMin(top.weekly) + 'を工程比率で割り付けたものです。</p>' +
-    renderSteps(top) +
+    '時間はあなたが申告した週' + fmtMin(top.weekly) + 'を工程比率で割り付けたものです。' +
+    '<b>バー全体の長さは工程の比重、内側の青は自分に残す時間、赤茶はAIに渡せる時間</b>を示します。</p>' +
+    renderSteps(top, { legend:true }) +
     '<div style="margin-top:14px">' + renderKeep(top) + '</div>' +
   '</section>';
 
   h += '<section class="sec" id="sec-prompt">' +
     '<div class="sec-head"><span class="sec-no">04</span><h2>そのまま使えるプロンプト</h2></div>' +
     '<p class="sec-lede">あなたの回答（部下' + (val('team') || 8) + '名／読み手は' +
-    esc(readerText()) + '）を反映済みです。コピーして、そのまま貼ってください。</p>' +
+    esc(readerText()) + '）を反映済みです。' +
+    (isBanned
+      ? '<b>これは利用承認後に使うためのプロンプトです。現在は貼り付けないでください。</b>'
+      : 'コピーして、そのまま貼ってください。') + '</p>' +
     renderPrompts(top) +
     '<div style="margin-top:14px">' + renderOpenLinks(R) + '</div>' +
   '</section>';
 
   h += '<section class="sec" id="sec-plan">' +
-    '<div class="sec-head"><span class="sec-no">05</span><h2>来週、この順番でやってください</h2></div>' +
-    '<p class="sec-lede">読んで終わりにしないための手順です。合計で30分もかかりません。</p>' +
+    '<div class="sec-head"><span class="sec-no">05</span><h2>次の実施で、この順番に進めてください</h2></div>' +
+    '<p class="sec-lede">' +
+    (isBanned
+      ? '<b>以下は利用承認後の実行順です。現在は、先に社内ルールを確認してください。</b>'
+      : '読んで終わりにしないため、最優先の1業務だけを実行順に並べています。') + '</p>' +
     renderPlan(top, R) + '</section>';
 
   /* 残りの業務 */
@@ -3026,14 +3181,16 @@ function renderResult(R){
       '<p class="closing-lead">最後に、ひとつだけ。</p>' +
       '<p class="closing-main">' +
         'この' + fmtMin(R.total) + 'は、<b>定時後にようやく始めていた自分の仕事を、定時内に戻すための時間</b>です。<br>' +
-        '3か月続ければ<b>' + fmtMin(R.total * 13) + '</b>。' +
+        '選んだ業務がすべて定着した後のペースなら、3か月で<b>' + fmtMin(R.total * 13) + '</b>。' +
         'それだけあれば、いま手が回っていないことが1つ片づきます。<br>' +
         'ただし、放っておくと別の業務が入ります。空けた時間に何を入れるかまで決めて、はじめて取り戻したことになります。' +
       '</p>' +
       '<p class="closing-sub">' +
-        '今日やることは1つだけです。<b>' + esc(top.job.short) +
-        '</b>の<b>' + promptRef(top.job) + '</b>をコピーして、どこかに貼り付けて置いておく。' +
-        'それだけで、来週の' + esc(top.job.plan[0].when) + 'に手が動きます。<br>' +
+        (isBanned
+          ? '今日やることは1つだけです。<b>情報システム部門か上長に、利用可能な社内AIと入力可能情報の範囲を確認する。</b>承認が出るまでは、業務情報をAIへ貼り付けないでください。<br>'
+          : '今日やることは1つだけです。<b>' + esc(top.job.short) +
+            '</b>の<b>' + promptRef(top.job) + '</b>をコピーして、どこかに貼り付けて置いておく。' +
+            'それだけで、次の「' + esc(top.job.plan[0].when) + '」に手が動きます。<br>') +
         (R.rows.length > 1
           ? '<b>残り' + (R.rows.length - 1) + '業務は、今日は見なくて大丈夫です。</b>'
           : '<b>全部を変えようとしなくていい。この1業務が回り始めてからで十分です。</b>') +
