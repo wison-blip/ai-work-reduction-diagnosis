@@ -204,7 +204,7 @@ img{ max-width:100%; }
   display:inline-block; flex:none; padding:2px 7px; border-radius:4px;
   font-size:10.5px; font-weight:800; letter-spacing:.04em;
 }
-.is-no  .tz-status{ background:var(--surface-3); color:var(--muted); }
+.is-no  .tz-status{ background:var(--surface-3); color:var(--ink-2); }
 .is-yes .tz-status{ background:var(--accent-soft); color:var(--accent-2); }
 .tz-bar{ display:flex; gap:3px; height:30px; margin-top:9px; }
 .tz-whole{
@@ -991,7 +991,7 @@ html{ scroll-behavior:smooth; }
 /* --- 印刷 --- */
 @media print{
   body{ background:#fff; }
-  .q-head,.q-foot,.r-actions,.toast,.copy,.foot,.rnav,.sharebox{ display:none !important; }
+  .q-head,.q-foot,.r-actions,.toast,.copy,.foot,.rnav,.sharebox,.openbox{ display:none !important; }
   .r-hero{ background:#1a1b1f !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .acc-panel{ display:block !important; }
   .prompt-body{ max-height:none; }
@@ -2669,7 +2669,6 @@ function renderPlan(r, R){
       '</tbody></table></div>' +
     '<p class="ramp-f">初回の数字には、' + fmtMin(setup) + 'の初期調整を含めています。' +
       '<b>' + breakEvenText + '。</b>' +
-      '40%・70%のような根拠のない定着率は置いていません。' +
       '<b>25分は実測値ではなく、初回調整を20〜30分とする設計レンジの中央値です。</b>' +
       '回収時点の比較だけに使い、上部の定着後削減時間には含めていません。</p>' +
   '</div>' +
@@ -2898,6 +2897,15 @@ function renderBasis(R, top){
       'ここは測定値ではないので、「いちばん重い工程」の設問と部下人数で補正をかけています。' +
       '合計は必ず100%になるように正規化しています。</p>' +
     '</div>' +
+    '<div class="acc" data-acc>' +
+      '<button class="acc-btn" aria-expanded="false">' +
+        '<span class="acc-txt">' +
+          '<span class="acc-name">さらに細かく：外部論文との照合・回答の効き方・業務ごとの結果・濃淡の理由・この見積もりの限界</span>' +
+          '<span class="acc-meta">5項目。学術論文への参照リンクも含みます。数字の出どころを最後まで確かめたい方へ</span>' +
+        '</span>' +
+        '<span class="acc-chev">' + ICON.chev + '</span>' +
+      '</button>' +
+      '<div class="acc-panel">' +
     '<div class="calcbox">' +
       '<h4>3. この式の根拠と、独自に決めた部分</h4>' +
       '<p><b>先に結論：</b>式そのものと各工程の採点は本診断独自です。ただし、減点係数は自由に置かず、' +
@@ -2954,15 +2962,6 @@ function renderBasis(R, top){
       '</ul>' +
       '<p style="margin-top:9px">参照日：2026年8月16日。リンクを開かなくても判定は動きます。外部通信は、リンクを押したときだけ発生します。</p>' +
     '</div>' +
-    '<div class="acc" data-acc>' +
-      '<button class="acc-btn" aria-expanded="false">' +
-        '<span class="acc-txt">' +
-          '<span class="acc-name">さらに細かく：回答の効き方・業務ごとの結果・濃淡の理由・この見積もりの限界</span>' +
-          '<span class="acc-meta">4項目。数字の出どころを最後まで確かめたい方へ</span>' +
-        '</span>' +
-        '<span class="acc-chev">' + ICON.chev + '</span>' +
-      '</button>' +
-      '<div class="acc-panel">' +
     '<div class="calcbox">' +
       '<h4>4. あなたの回答が、どこに効いたか</h4>' +
       '<div class="tbl-scroll"><table class="tbl">' +
