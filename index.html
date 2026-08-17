@@ -54,11 +54,21 @@
   --series-ai:   #c2410c;  /* ラスト     = AIに渡せる時間 */
   --series-keep-soft:#eceff8;
   --series-ai-soft:  #fbeee6;
+  --series-keep-ink:   #31488a; /* series-keep-soft 地で本文用（4.5:1超）。工程バー直下の説明にのみ使う */
+  --series-keep-ink-b: #26397a; /* 同、太字用に少し暗く */
 
   /* ステータス（固定・系列色と兼用しない） */
   --st-good:    #0ca30c;
   --st-warn:    #fab219;
   --st-crit:    #d03b3b;
+
+  /* 注意ボックス（.note）専用。warn/critは黄・赤、infoは中立トーンでアクセントを増やさない */
+  --note-warn-bg:   #fff8e8;
+  --note-warn-line: #f2d692;
+  --note-warn-ink:  #6b4e08;
+  --note-crit-bg:   #fdefef;
+  --note-crit-line: #f0bcbc;
+  --note-crit-ink:  #7d2020;
 
   --radius:     14px;
   --radius-sm:  10px;
@@ -349,9 +359,9 @@ img{ max-width:100%; }
   display:inline-flex; align-items:center; gap:6px;
   font-size:11.5px; font-weight:800; letter-spacing:.05em;
   padding:4px 10px; border-radius:6px; margin-bottom:13px;
-  background:var(--series-keep-soft); color:#31488a;
+  background:var(--surface-3); color:var(--ink-2);
 }
-.q-tag.is-job{ background:var(--series-ai-soft); color:var(--accent-2); }
+.q-tag.is-job{ background:var(--accent-soft); color:var(--accent-2); }
 .q-title{
   font-size:clamp(20px,4.8vw,26px); font-weight:800; line-height:1.5;
   letter-spacing:-.01em;
@@ -463,8 +473,8 @@ img{ max-width:100%; }
 .r-hero{
   background:
     radial-gradient(800px 380px at 88% -10%, rgba(194,65,12,.16), transparent 60%),
-    linear-gradient(168deg,#1a1b1f 0%,#0e0f12 100%);
-  color:#fff; padding:38px 0 34px; position:relative; overflow:hidden;
+    linear-gradient(168deg,var(--ink-deep) 0%,var(--ink-deep-2) 100%);
+  color:var(--on-dark); padding:38px 0 34px; position:relative; overflow:hidden;
 }
 .r-hero-label{
   font-size:12px; font-weight:800; letter-spacing:.13em; color:#96938c;
@@ -669,10 +679,10 @@ html{ scroll-behavior:smooth; }
 
 .step-why{
   font-size:12.5px; margin-top:8px; padding:9px 12px; border-radius:8px;
-  background:var(--series-keep-soft); color:#31488a; line-height:1.75;
+  background:var(--series-keep-soft); color:var(--series-keep-ink); line-height:1.75;
   border-left:3px solid var(--series-keep);
 }
-.step-why b{ color:#26397a; }
+.step-why b{ color:var(--series-keep-ink-b); }
 .step-right{ text-align:right; flex:none; }
 .verdict{
   display:inline-block; font-size:11px; font-weight:800; letter-spacing:.02em;
@@ -915,14 +925,14 @@ html{ scroll-behavior:smooth; }
 }
 .note .ic{ flex:none; margin-top:2px; }
 .note b{ font-weight:800; }
-.note.warn{ background:#fff8e8; border:1px solid #f2d692; color:#6b4e08; }
-.note.crit{ background:#fdefef; border:1px solid #f0bcbc; color:#7d2020; }
-.note.info{ background:#f1f2f9; border:1px solid #d9dded; color:#31488a; }
+.note.warn{ background:var(--note-warn-bg); border:1px solid var(--note-warn-line); color:var(--note-warn-ink); }
+.note.crit{ background:var(--note-crit-bg); border:1px solid var(--note-crit-line); color:var(--note-crit-ink); }
+.note.info{ background:var(--surface-3); border:1px solid var(--line); color:var(--ink-2); }
 
 /* --- 締め --- */
 .closing{
-  background:linear-gradient(168deg,#1a1b1f,#0e0f12);
-  color:#fff; border-radius:var(--radius); padding:26px 24px;
+  background:linear-gradient(168deg,var(--ink-deep),var(--ink-deep-2));
+  color:var(--on-dark); border-radius:var(--radius); padding:26px 24px;
   box-shadow:var(--shadow-2); position:relative; overflow:hidden;
 }
 .closing::after{
@@ -958,7 +968,7 @@ html{ scroll-behavior:smooth; }
   box-shadow:var(--shadow-1);
 }
 .shbtn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-2); }
-.shbtn-x{ background:#17181c; color:#fff; }
+.shbtn-x{ background:var(--ink); color:var(--on-dark); }
 .shbtn-line{ background:#067d38; color:#fff; }   /* LINE緑は白文字だと2.3:1 なので暗くしている */
 .shbtn-img{ background:var(--accent); color:#fff; }
 .shbtn-copy{ background:var(--surface); color:var(--ink-2); border-color:var(--line); }
@@ -992,7 +1002,7 @@ html{ scroll-behavior:smooth; }
 @media print{
   body{ background:#fff; }
   .q-head,.q-foot,.r-actions,.toast,.copy,.foot,.rnav,.sharebox,.openbox{ display:none !important; }
-  .r-hero{ background:#1a1b1f !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .r-hero{ background:var(--ink-deep) !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .acc-panel{ display:block !important; }
   .prompt-body{ max-height:none; }
   .card,.acc,.prompt{ break-inside:avoid; box-shadow:none; }
