@@ -968,7 +968,6 @@ html{ scroll-behavior:smooth; }
   box-shadow:var(--shadow-1);
 }
 .shbtn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-2); }
-.shbtn-x{ background:var(--ink); color:var(--on-dark); }
 .shbtn-line{ background:#067d38; color:#fff; }   /* LINE緑は白文字だと2.3:1 なので暗くしている */
 .shbtn-img{ background:var(--accent); color:#fff; }
 .shbtn-copy{ background:var(--surface); color:var(--ink-2); border-color:var(--line); }
@@ -2729,7 +2728,7 @@ function shareText(){
     'AIに渡すのは「' + SHARE.bigStep + '」の工程。\n' +
     '渡さないのは「' + SHARE.keepStep + '」。\n\n' +
     'AIに渡すのは業務じゃなく、工程でした。\nあなたの分も3分で出せます\n' +
-    SHARE.url + '\n\n#AI引き継ぎ診断 #業務削減 #管理職';
+    SHARE.url;
 }
 
 /* 結果カードを Canvas で描く。外部ライブラリは使わない */
@@ -2787,8 +2786,6 @@ function renderShare(){
     '<p class="sharebox-t">この結果をシェアする</p>' +
     '<p class="sharebox-s">同じように定時後まで仕事が残っている人に、渡してあげてください。</p>' +
     '<div class="sharebox-btns">' +
-      '<button class="shbtn shbtn-x"    id="sh-x">' +
-        '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.2 8.3L23.3 22h-6.6l-5.2-6.8L5.6 22H2.4l7.7-8.9L1.1 2h6.8l4.7 6.2zm-1.1 18h1.8L6.3 3.9H4.4z"/></svg>X</button>' +
       '<button class="shbtn shbtn-line" id="sh-line">LINE</button>' +
       '<button class="shbtn shbtn-img"  id="sh-img">' +
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>結果カード画像</button>' +
@@ -2801,10 +2798,7 @@ function renderShare(){
 
 function bindShare(){
   const enc = encodeURIComponent;
-  const x = el('sh-x'), line = el('sh-line'), img = el('sh-img'), copy = el('sh-copy');
-  if (x) x.addEventListener('click', function(){
-    window.open('https://twitter.com/intent/tweet?text=' + enc(shareText()), '_blank', 'noopener');
-  });
+  const line = el('sh-line'), img = el('sh-img'), copy = el('sh-copy');
   if (line) line.addEventListener('click', function(){
     window.open('https://line.me/R/msg/text/?' + enc(shareText()), '_blank', 'noopener');
   });
