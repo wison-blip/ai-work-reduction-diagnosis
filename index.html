@@ -134,10 +134,22 @@ img{ max-width:100%; }
 @media (min-width:860px){
   .hero-in{
     display:grid; grid-template-columns:1fr 1fr; column-gap:52px; row-gap:0;
-    align-items:start;
+    align-items:stretch;
   }
-  .hero-l{ padding-top:4px; }
-  .hero-b{ grid-column:1 / -1; margin-top:30px; padding-top:26px; border-top:1px solid var(--line); }
+  /* 右カラム（失敗談＋図解）は左カラム（見出し＋主張文）より縦に長くなりやすい。
+     左カラムをflex columnにし、数字カードを margin-top:auto で下端に揃えることで、
+     余白が数字カードの下ではなく本文とのあいだに寄り、両カラムの終端がそろう。 */
+  .hero-l{ padding-top:4px; display:flex; flex-direction:column; }
+  .hero-l .hero-stats{ margin-top:auto; }
+  /* hero-bは2カラム分の全幅（1120px）を使う行。中身は短い文章とボタンだけなので
+     左寄せのままだと右側が大きく空いて見える。中央寄せにして余白を左右に分散させる。 */
+  .hero-b{
+    grid-column:1 / -1; margin-top:30px; padding-top:26px; border-top:1px solid var(--line);
+    text-align:center;
+  }
+  .hero-b .hero-scope{ margin-left:auto; margin-right:auto; }
+  .hero-b .hero-meta{ justify-content:center; }
+  .hero-b .hero-cta{ display:flex; flex-direction:column; align-items:center; }
 }
 /* 左カラム下部の余白を、成果物の中身を裏付ける事実で埋める。
    煽り文句ではなく、数えられる事実だけを置く。 */
