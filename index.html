@@ -231,14 +231,17 @@ img{ max-width:100%; }
   background:var(--surface-3); border:1px dashed var(--line);
   border-radius:5px; font-size:11.5px; font-weight:700; color:#63656d; /* surface-3背景でも4.5:1を満たす専用色 */
 }
+/* 「この診断」側は縦棒（列）に変更。列の高さ＝工程の重さ、列内の塗り分け（上=渡せる/下=残る）は
+   工程比率と同じ考え方。重さを幅ではなく高さで見せるほうが「背が高い＝重い」で直感的に伝わる。 */
+.is-yes .tz-bar{ height:64px; align-items:flex-end; gap:6px; }
 .tz-seg{
   position:relative; display:block; border-radius:4px; overflow:hidden;
-  background:var(--series-keep); min-width:6px;
+  background:var(--series-keep); flex:1; min-width:6px;
 }
 .tz-seg i{ position:absolute; left:0; right:0; top:0; display:block; background:var(--series-ai); }
-/* バー本体と同じflex比率で番号を置き、どの四角がどの工程かを下の凡例と対応させる */
-.tz-nums{ display:flex; gap:3px; margin-top:3px; }
-.tz-nums span{ text-align:center; font-size:9.5px; font-weight:800; color:var(--muted); }
+/* バーと同じ等幅・同じgapで番号を並べ、どの列がどの工程かを下の凡例と対応させる */
+.tz-nums{ display:flex; gap:6px; margin-top:3px; }
+.tz-nums span{ flex:1; text-align:center; font-size:9.5px; font-weight:800; color:var(--muted); }
 .tz-note{ display:block; margin-top:8px; font-size:12.5px; color:var(--muted); line-height:1.7; }
 .is-yes .tz-note{ color:var(--ink-2); font-weight:600; }
 .tz-key{
@@ -1075,22 +1078,22 @@ html{ scroll-behavior:smooth; }
         <div class="tz-row is-yes">
           <span class="tz-head"><span class="tz-status">この診断</span>工程で切って渡す</span>
           <div class="tz-bar">
-            <span class="tz-seg" style="flex:12"><i style="height:0%"></i></span>
-            <span class="tz-seg" style="flex:20"><i style="height:55%"></i></span>
-            <span class="tz-seg" style="flex:15"><i style="height:30%"></i></span>
-            <span class="tz-seg" style="flex:33"><i style="height:80%"></i></span>
-            <span class="tz-seg" style="flex:15"><i style="height:45%"></i></span>
-            <span class="tz-seg" style="flex:5"><i style="height:0%"></i></span>
+            <span class="tz-seg" style="height:23px"><i style="height:0%"></i></span>
+            <span class="tz-seg" style="height:39px"><i style="height:55%"></i></span>
+            <span class="tz-seg" style="height:29px"><i style="height:30%"></i></span>
+            <span class="tz-seg" style="height:64px"><i style="height:80%"></i></span>
+            <span class="tz-seg" style="height:29px"><i style="height:45%"></i></span>
+            <span class="tz-seg" style="height:22px"><i style="height:0%"></i></span>
           </div>
           <div class="tz-nums">
-            <span style="flex:12">1</span>
-            <span style="flex:20">2</span>
-            <span style="flex:15">3</span>
-            <span style="flex:33">4</span>
-            <span style="flex:15">5</span>
-            <span style="flex:5">6</span>
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+            <span>6</span>
           </div>
-          <span class="tz-note">四角1つが1つの工程。幅はその工程の重さ、色の割合が渡せる分です</span>
+          <span class="tz-note">棒1本が1つの工程。高さはその工程の重さ、色の割合が渡せる分です</span>
           <ul class="tz-key">
             <li><b>1</b>催促・収集</li>
             <li><b>2</b>読んで把握</li>
