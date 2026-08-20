@@ -236,8 +236,21 @@ img{ max-width:100%; }
   background:var(--series-keep); min-width:6px;
 }
 .tz-seg i{ position:absolute; left:0; right:0; top:0; display:block; background:var(--series-ai); }
+/* バー本体と同じflex比率で番号を置き、どの四角がどの工程かを下の凡例と対応させる */
+.tz-nums{ display:flex; gap:3px; margin-top:3px; }
+.tz-nums span{ text-align:center; font-size:9.5px; font-weight:800; color:var(--muted); }
 .tz-note{ display:block; margin-top:8px; font-size:12.5px; color:var(--muted); line-height:1.7; }
 .is-yes .tz-note{ color:var(--ink-2); font-weight:600; }
+.tz-key{
+  display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:9px;
+  font-size:11px; color:var(--ink-2);
+}
+.tz-key li{ display:inline-flex; align-items:center; gap:4px; }
+.tz-key b{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:14px; height:14px; border-radius:4px; flex:none;
+  background:var(--surface-3); color:var(--ink-2); font-size:9.5px; font-weight:800;
+}
 .tz-legend{
   display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px;
   margin-top:16px; padding-top:14px; border-top:1px solid var(--line-soft);
@@ -1069,7 +1082,23 @@ html{ scroll-behavior:smooth; }
             <span class="tz-seg" style="flex:15"><i style="height:45%"></i></span>
             <span class="tz-seg" style="flex:5"><i style="height:0%"></i></span>
           </div>
+          <div class="tz-nums">
+            <span style="flex:12">1</span>
+            <span style="flex:20">2</span>
+            <span style="flex:15">3</span>
+            <span style="flex:33">4</span>
+            <span style="flex:15">5</span>
+            <span style="flex:5">6</span>
+          </div>
           <span class="tz-note">四角1つが1つの工程。幅はその工程の重さ、色の割合が渡せる分です</span>
+          <ul class="tz-key">
+            <li><b>1</b>催促・収集</li>
+            <li><b>2</b>読んで把握</li>
+            <li><b>3</b>論点を拾う</li>
+            <li><b>4</b>文章化</li>
+            <li><b>5</b>個別に返す</li>
+            <li><b>6</b>送付・共有</li>
+          </ul>
         </div>
         <figcaption class="tz-legend">
           <span><i class="sw-ai"></i>AIに渡せる部分</span>
