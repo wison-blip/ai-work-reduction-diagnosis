@@ -2487,7 +2487,7 @@ function renderHero(R){
     chips.push('<li>1週あたりに均すと <b>' + fmtMin(R.total) + '</b></li>');
   } else {
     chips.push('<li>年間で <b>' + fmtMin(R.total * WORK_WEEKS) + '</b></li>');
-    if (R.annualD >= 0.5) chips.push('<li>1日8時間なら <b>' + R.annualD.toFixed(1) + '</b> 日ぶん</li>');
+    if (R.annualD >= 0.5) chips.push('<li>1日8時間なら <b>' + R.annualD.toFixed(1) + '</b> 日分</li>');
   }
   /* 週次以外の業務は「その業務が実際に来る単位」での数字も出す。そちらが体感に近い。 */
   R.rows.forEach(function(r){
