@@ -47,7 +47,39 @@
   --accent-2:    #a3350a;  /* 押し込み・濃い文字 */
   --accent-soft: #fbeee6;
   --accent-line: #f0cdb6;
+  --accent-tint: #fdf7f3;  /* accent-soft より薄い面。最優先カード・貼り先ボックスの地 */
+  --accent-btn:  #cb4a11;  /* 主ボタン天面。accent より一段明るくして立体を作る */
+  --accent-btn-2:#ab3708;  /* 主ボタン底面 */
+  --accent-lite: #d4632c;  /* 進捗バー左端。右端の accent へ向かう */
   --on-dark:     #ffffff;
+
+  /* rgba を組み立てるための成分。上の16進値と同じ色を分解しただけで、新しい色ではない。
+     半透明が要る箇所（影・すりガラス・マーカー）でも色定義を1箇所に保つために置く。 */
+  --accent-rgb:   194,65,12;    /* = --accent   #c2410c */
+  --accent-2-rgb: 163,53,10;    /* = --accent-2 #a3350a */
+  --plane-rgb:    244,242,238;  /* = --plane    #f4f2ee */
+  --ink-deep-rgb: 26,27,31;     /* = --ink-deep #1a1b1f */
+
+  /* 紙面側のニュートラル */
+  --plane-top:    #fcfbf9;  /* ヒーロー上端。--plane へ向けて落とす */
+  --line-hover:   #d9d2c6;  /* カード hover 時の枠 */
+  --control-line: #cfcbc2;  /* 未選択のラジオ／チェックの枠 */
+  --scroll-thumb: #ddd8ce;  /* プロンプト本文のスクロールバー */
+  --ink-sunken:   #63656d;  /* surface-3 の上で 4.5:1 を満たす最も明るい文字色 */
+  --code-bg:      #fbfcfd;  /* プロンプト本文の面 */
+  --code-ink:     #22232a;  /* 同、文字 */
+
+  /* 濃色面（結果ヒーロー・締め）に載せる文字と面。
+     紙面側の --ink 系は濃色面でコントラストが取れないため、専用に持つ。 */
+  --on-dark-1:      #e3e0d9;              /* 準主文字（単位・チップ） */
+  --on-dark-2:      #c4c1b9;              /* 副文字 */
+  --on-dark-3:      #96938c;              /* 字間を空けた小ラベル */
+  --on-dark-body:   #eae7e1;              /* 本文 */
+  --on-dark-num2:   #cdc9c0;              /* 主数字グラデーションの下端 */
+  --on-dark-accent: #e8834f;              /* 濃色面で読ませるラスト。--accent は濃色面では暗すぎる */
+  --on-dark-fill:   rgba(255,255,255,.10);
+  --on-dark-fill-2: rgba(255,255,255,.16);
+  --on-dark-line:   rgba(255,255,255,.17);
 
   /* データ系列（dataviz 検証済み／白地：CVD ΔE 15.3・通常視 ΔE 26.9・コントラスト 3:1 以上） */
   --series-keep: #3b5ba9;  /* インディゴ = 自分に残る時間 */
@@ -55,9 +87,27 @@
   --series-keep-soft:#eceff8;
   --series-keep-ink:   #31488a; /* series-keep-soft 地で本文用（4.5:1超）。工程バー直下の説明にのみ使う */
   --series-keep-ink-b: #26397a; /* 同、太字用に少し暗く */
+  --series-keep-tint:  #f2f4fb; /* 「渡さない工程」ボックスの地 */
+  --series-keep-line:  #d9dded; /* 同、枠 */
 
   /* ステータス（固定・系列色と兼用しない） */
-  --st-good:    #0ca30c;
+  --st-good:     #0ca30c;  /* 面として使う（白文字を載せる） */
+  --st-good-ink: #077a07;  /* 紙地の文字として使う。--st-good は 3.0:1 で本文に足りない */
+
+  /* プロンプトの「あなたが埋める欄」のマーカー */
+  --fill-bg:   #fff2cc;
+  --fill-ink:  #7a5600;
+  --fill-line: #e0b64a;
+
+  /* 濃色面に置く注意ボックス（.r-honest）。紙面側の --note-warn-* とは地が違うので別に持つ */
+  --honest-bg:   rgba(250,178,25,.13);
+  --honest-line: rgba(250,178,25,.40);
+  --honest-ink:  #efe2c6;
+  --honest-b:    #f2c66b;
+
+  /* 外部ブランド色。パレットの一部ではなく、LINEの識別色として例外的に持つ。
+     白文字で 4.5:1 を満たすところまで暗くしてある（原色は 2.3:1 で不足） */
+  --brand-line-green: #067d38;
 
   /* 注意ボックス（.note）専用。warn/critは黄・赤、infoは中立トーンでアクセントを増やさない */
   --note-warn-bg:   #fff8e8;
@@ -116,8 +166,8 @@ img{ max-width:100%; }
    いちばん長く読まれる画面なので、濃い面を敷かず、文字のコントラストを最大に取る。 */
 .hero{
   background:
-    radial-gradient(880px 400px at 90% -20%, rgba(194,65,12,.055), transparent 62%),
-    linear-gradient(180deg, #fcfbf9 0%, var(--plane) 100%);
+    radial-gradient(880px 400px at 90% -20%, rgba(var(--accent-rgb),.055), transparent 62%),
+    linear-gradient(180deg, var(--plane-top) 0%, var(--plane) 100%);
   color:var(--ink);
   padding:44px 0 46px;
   position:relative;
@@ -178,7 +228,7 @@ img{ max-width:100%; }
 }
 .hero h1 .em{
   white-space:nowrap;
-  background:linear-gradient(transparent 74%, rgba(194,65,12,.24) 74%);
+  background:linear-gradient(transparent 74%, rgba(var(--accent-rgb),.24) 74%);
 }
 .hero .lede{
   margin-top:22px; font-size:clamp(15px,3.6vw,17px); line-height:1.9;
@@ -204,7 +254,7 @@ img{ max-width:100%; }
 }
 .hero-fail-a b{
   color:var(--ink); font-weight:800;
-  background:linear-gradient(transparent 74%, rgba(194,65,12,.24) 74%);
+  background:linear-gradient(transparent 74%, rgba(var(--accent-rgb),.24) 74%);
 }
 /* 主張の図解。装飾ではなく、この作品の結論そのものを1枚にしたもの。
    ここで色の意味（ラスト＝AIに渡す／インディゴ＝自分に残る）を先に教えておくと、
@@ -229,7 +279,7 @@ img{ max-width:100%; }
 .tz-whole{
   flex:1; display:flex; align-items:center; justify-content:center;
   background:var(--surface-3); border:1px dashed var(--line);
-  border-radius:5px; font-size:11.5px; font-weight:700; color:#63656d; /* surface-3背景でも4.5:1を満たす専用色 */
+  border-radius:5px; font-size:11.5px; font-weight:700; color:var(--ink-sunken); /* surface-3背景でも4.5:1を満たす専用色 */
 }
 /* 「この診断」側は縦棒（列）に変更。列の高さ＝工程の重さ、列内の塗り分け（上=渡せる/下=残る）は
    工程比率と同じ考え方。重さを幅ではなく高さで見せるほうが「背が高い＝重い」で直感的に伝わる。 */
@@ -286,12 +336,12 @@ img{ max-width:100%; }
   display:inline-flex; align-items:center; justify-content:center; gap:9px;
   font-weight:800; font-size:16.5px; letter-spacing:.01em;
   padding:16px 30px; border-radius:12px;
-  background:linear-gradient(180deg,#cb4a11,#ab3708);
-  color:#fff; box-shadow:0 5px 18px rgba(163,53,10,.28);
+  background:linear-gradient(180deg,var(--accent-btn),var(--accent-btn-2));
+  color:var(--on-dark); box-shadow:0 5px 18px rgba(var(--accent-2-rgb),.28);
   transition:transform .14s ease, box-shadow .14s ease, filter .14s ease;
   width:100%; max-width:420px;
 }
-.btn:hover{ transform:translateY(-2px); box-shadow:0 9px 26px rgba(163,53,10,.34); }
+.btn:hover{ transform:translateY(-2px); box-shadow:0 9px 26px rgba(var(--accent-2-rgb),.34); }
 .btn:active{ transform:translateY(0); filter:brightness(.96); }
 .btn-ghost{
   background:var(--surface); color:var(--ink-deep); border:1.5px solid var(--line);
@@ -299,9 +349,9 @@ img{ max-width:100%; }
 }
 .btn-ghost:hover{ background:var(--surface-2); box-shadow:var(--shadow-2); }
 .btn-nav{
-  background:var(--ink-deep); color:#fff; box-shadow:0 4px 14px rgba(26,27,31,.24);
+  background:var(--ink-deep); color:var(--on-dark); box-shadow:0 4px 14px rgba(var(--ink-deep-rgb),.24);
 }
-.btn-nav:hover{ box-shadow:0 8px 22px rgba(26,27,31,.30); }
+.btn-nav:hover{ box-shadow:0 8px 22px rgba(var(--ink-deep-rgb),.30); }
 .btn[disabled]{ opacity:.4; pointer-events:none; box-shadow:none; }
 
 .hero-cta{ margin-top:26px; }
@@ -334,7 +384,7 @@ img{ max-width:100%; }
 }
 .how-card .n{
   display:inline-flex; align-items:center; justify-content:center;
-  width:25px; height:25px; border-radius:7px; background:var(--ink-deep); color:#fff;
+  width:25px; height:25px; border-radius:7px; background:var(--ink-deep); color:var(--on-dark);
   font-size:13px; font-weight:800; margin-bottom:9px;
 }
 .how-card h3{ font-size:14.5px; font-weight:800; line-height:1.5; }
@@ -350,7 +400,7 @@ img{ max-width:100%; }
    ============================================================ */
 .q-head{
   position:sticky; top:0; z-index:20;
-  background:rgba(244,242,238,.93);
+  background:rgba(var(--plane-rgb),.93);
   backdrop-filter:saturate(180%) blur(12px);
   -webkit-backdrop-filter:saturate(180%) blur(12px);
   border-bottom:1px solid var(--line);
@@ -369,7 +419,7 @@ img{ max-width:100%; }
 .q-prog-bar{ height:7px; border-radius:99px; background:var(--surface-3); overflow:hidden; }
 .q-prog-fill{
   height:100%; border-radius:99px;
-  background:linear-gradient(90deg,#d4632c,var(--accent));
+  background:linear-gradient(90deg,var(--accent-lite),var(--accent));
   transition:width .42s cubic-bezier(.2,.8,.3,1); width:0;
 }
 .q-prog-txt{
@@ -410,14 +460,16 @@ img{ max-width:100%; }
   padding:15px 16px; box-shadow:var(--shadow-1);
   transition:border-color .13s, box-shadow .13s, transform .13s, background .13s;
 }
-.opt:hover{ border-color:#d9d2c6; box-shadow:var(--shadow-2); transform:translateY(-1px); }
-.opt.is-on{ border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 3px rgba(194,65,12,.14); }
+.opt:hover{ border-color:var(--line-hover); box-shadow:var(--shadow-2); transform:translateY(-1px); }
+.opt.is-on{ border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 3px rgba(var(--accent-rgb),.14); }
 .opt-mark{
   flex:none; width:23px; height:23px; margin-top:1px; border-radius:50%;
-  border:2px solid #cfcbc2; display:grid; place-items:center;
+  border:2px solid var(--control-line); display:grid; place-items:center;
   transition:background .13s, border-color .13s;
 }
 .opt.is-multi .opt-mark{ border-radius:7px; }
+/* チェック本体は currentColor。アクセント地に載るので、ここで白を指定する */
+.opt-mark{ color:var(--on-dark); }
 .opt.is-on .opt-mark{ background:var(--accent); border-color:var(--accent); }
 .opt-mark svg{ opacity:0; transform:scale(.6); transition:opacity .13s, transform .13s; }
 .opt.is-on .opt-mark svg{ opacity:1; transform:scale(1); }
@@ -434,21 +486,22 @@ img{ max-width:100%; }
   padding:15px 16px; box-shadow:var(--shadow-1);
   transition:border-color .13s, box-shadow .13s, transform .13s, background .13s;
 }
-.jobcard:hover{ border-color:#d9d2c6; transform:translateY(-1px); box-shadow:var(--shadow-2); }
-.jobcard.is-on{ border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 3px rgba(194,65,12,.14); }
+.jobcard:hover{ border-color:var(--line-hover); transform:translateY(-1px); box-shadow:var(--shadow-2); }
+.jobcard.is-on{ border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 3px rgba(var(--accent-rgb),.14); }
 .jobcard-no{
   flex:none; width:38px; height:38px; border-radius:11px;
   background:var(--surface-3); color:var(--ink-deep);
   display:grid; place-items:center; font-size:17px; font-weight:800;
   transition:background .13s, color .13s;
 }
-.jobcard.is-on .jobcard-no{ background:var(--accent); color:#fff; }
+.jobcard.is-on .jobcard-no{ background:var(--accent); color:var(--on-dark); }
 .jobcard-txt{ flex:1; min-width:0; }
 .jobcard-name{ display:block; font-size:15.5px; font-weight:800; line-height:1.5; }
 .jobcard-meta{ display:block; font-size:12px; color:var(--muted); margin-top:3px; }
 .jobcard-check{
-  flex:none; width:23px; height:23px; border-radius:7px; border:2px solid #cfcbc2;
+  flex:none; width:23px; height:23px; border-radius:7px; border:2px solid var(--control-line);
   display:grid; place-items:center; transition:background .13s, border-color .13s;
+  color:var(--on-dark);   /* チェック本体は currentColor。アクセント地に載るので白 */
 }
 .jobcard.is-on .jobcard-check{ background:var(--accent); border-color:var(--accent); }
 .jobcard-check svg{ opacity:0; transform:scale(.6); transition:opacity .13s, transform .13s; }
@@ -456,7 +509,7 @@ img{ max-width:100%; }
 
 .q-foot{
   position:sticky; bottom:0; z-index:15;
-  background:linear-gradient(to top, var(--plane) 62%, rgba(244,242,238,0));
+  background:linear-gradient(to top, var(--plane) 62%, rgba(var(--plane-rgb),0));
   padding:18px 0 20px; margin-top:8px;
 }
 .q-foot .btn{ max-width:none; }
@@ -490,19 +543,19 @@ img{ max-width:100%; }
   animation:stepIn .4s ease forwards; display:flex; align-items:center; gap:8px;
 }
 @keyframes stepIn{ to{ opacity:1; transform:none; } }
-.calc-step .tick{ color:#077a07; font-weight:900; }   /* 紙地で 4.95:1。--st-good は 3.0:1 で足りない */
+.calc-step .tick{ color:var(--st-good-ink); font-weight:900; }   /* 紙地で 4.95:1。--st-good は 3.0:1 で足りない */
 
 /* ============================================================
    4. 結果
    ============================================================ */
 .r-hero{
   background:
-    radial-gradient(800px 380px at 88% -10%, rgba(194,65,12,.16), transparent 60%),
+    radial-gradient(800px 380px at 88% -10%, rgba(var(--accent-rgb),.16), transparent 60%),
     linear-gradient(168deg,var(--ink-deep) 0%,var(--ink-deep-2) 100%);
   color:var(--on-dark); padding:38px 0 34px; position:relative; overflow:hidden;
 }
 .r-hero-label{
-  font-size:12px; font-weight:800; letter-spacing:.13em; color:#96938c;
+  font-size:12px; font-weight:800; letter-spacing:.13em; color:var(--on-dark-3);
 }
 .r-figure{
   display:flex; align-items:baseline; gap:4px; flex-wrap:wrap;
@@ -510,28 +563,28 @@ img{ max-width:100%; }
 }
 .r-figure .num{
   font-size:clamp(60px,17vw,96px); font-weight:800; letter-spacing:-.045em;
-  background:linear-gradient(180deg,#fff,#cdc9c0);
+  background:linear-gradient(180deg,var(--on-dark),var(--on-dark-num2));
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
-.r-figure .unit{ font-size:clamp(21px,5vw,30px); font-weight:800; color:#e3e0d9; }
-.r-figure-sub{ font-size:15px; color:#c4c1b9; margin-top:12px; font-weight:600; }
-.r-figure-sub b{ color:#fff; }
+.r-figure .unit{ font-size:clamp(21px,5vw,30px); font-weight:800; color:var(--on-dark-1); }
+.r-figure-sub{ font-size:15px; color:var(--on-dark-2); margin-top:12px; font-weight:600; }
+.r-figure-sub b{ color:var(--on-dark); }
 .r-annual{
   margin-top:16px; display:flex; flex-wrap:wrap; gap:9px;
 }
 .r-annual li{
-  font-size:13px; font-weight:700; color:#e3e0d9;
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.17);
+  font-size:13px; font-weight:700; color:var(--on-dark-1);
+  background:var(--on-dark-fill); border:1px solid var(--on-dark-line);
   padding:8px 13px; border-radius:9px;
 }
-.r-annual li b{ color:#fff; font-size:15.5px; }
+.r-annual li b{ color:var(--on-dark); font-size:15.5px; }
 .r-honest{
   margin-top:18px; padding:13px 15px; border-radius:var(--radius-sm);
-  background:rgba(250,178,25,.13); border:1px solid rgba(250,178,25,.4);
-  font-size:13px; line-height:1.8; color:#efe2c6;
+  background:var(--honest-bg); border:1px solid var(--honest-line);
+  font-size:13px; line-height:1.8; color:var(--honest-ink);
   display:flex; gap:10px; align-items:flex-start;
 }
-.r-honest b{ color:#f2c66b; }
+.r-honest b{ color:var(--honest-b); }
 .r-honest .ic{ flex:none; margin-top:2px; }
 
 /* .wrap の左右パディングを打ち消さないよう、左右も明示する
@@ -541,7 +594,7 @@ img{ max-width:100%; }
 /* --- 結果の目次（長さを、迷子にしないための構造で解く） --- */
 .rnav{
   position:sticky; top:0; z-index:30; margin:0 -16px 26px;
-  background:rgba(244,242,238,.94);
+  background:rgba(var(--plane-rgb),.94);
   backdrop-filter:saturate(180%) blur(12px);
   -webkit-backdrop-filter:saturate(180%) blur(12px);
   border-bottom:1px solid var(--line);
@@ -557,7 +610,7 @@ img{ max-width:100%; }
   padding:7px 13px; border-radius:99px; white-space:nowrap;
   transition:background .12s, border-color .12s, color .12s;
 }
-.rnav-item:hover{ background:var(--ink-deep); border-color:var(--ink-deep); color:#fff; }
+.rnav-item:hover{ background:var(--ink-deep); border-color:var(--ink-deep); color:var(--on-dark); }
 .sec{ scroll-margin-top:64px; }
 html{ scroll-behavior:smooth; }
 @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
@@ -566,7 +619,7 @@ html{ scroll-behavior:smooth; }
 .gist{
   background:var(--surface); border:1.5px solid var(--series-ai);
   border-radius:var(--radius); padding:19px 21px;
-  box-shadow:0 0 0 3px rgba(194,65,12,.09), var(--shadow-2);
+  box-shadow:0 0 0 3px rgba(var(--accent-rgb),.09), var(--shadow-2);
 }
 .gist-label{
   font-size:11.5px; font-weight:800; letter-spacing:.1em; color:var(--series-ai);
@@ -579,7 +632,7 @@ html{ scroll-behavior:smooth; }
 }
 .gist-list li::before{
   content:counter(g); position:absolute; left:0; top:.28em;
-  width:21px; height:21px; border-radius:6px; background:var(--ink-deep); color:#fff;
+  width:21px; height:21px; border-radius:6px; background:var(--ink-deep); color:var(--on-dark);
   font-size:11.5px; font-weight:800; display:grid; place-items:center;
 }
 .gist-list b{ color:var(--ink); font-weight:800; }
@@ -616,7 +669,7 @@ html{ scroll-behavior:smooth; }
 .bar-out b{ color:var(--series-ai); }
 .bar-seg{
   display:flex; align-items:center; justify-content:flex-end;
-  padding:0 7px; font-size:11.5px; font-weight:800; color:#fff;
+  padding:0 7px; font-size:11.5px; font-weight:800; color:var(--on-dark);
   white-space:nowrap; overflow:hidden; min-width:2px;
   font-variant-numeric:tabular-nums;
   transition:width .7s cubic-bezier(.2,.8,.3,1);
@@ -635,15 +688,15 @@ html{ scroll-behavior:smooth; }
 }
 .pri-card.is-top{
   border:1.5px solid var(--series-ai);
-  box-shadow:0 0 0 3px rgba(194,65,12,.10), var(--shadow-2);
-  background:linear-gradient(180deg,#fdf7f3,var(--surface) 62%);
+  box-shadow:0 0 0 3px rgba(var(--accent-rgb),.10), var(--shadow-2);
+  background:linear-gradient(180deg,var(--accent-tint),var(--surface) 62%);
 }
 .pri-rank{
   flex:none; width:34px; height:34px; border-radius:10px;
   display:grid; place-items:center; font-size:15px; font-weight:800;
   background:var(--surface-3); color:var(--ink-2);
 }
-.pri-card.is-top .pri-rank{ background:var(--series-ai); color:#fff; }
+.pri-card.is-top .pri-rank{ background:var(--series-ai); color:var(--on-dark); }
 .pri-main{ flex:1; min-width:0; }
 .pri-name{ font-size:15px; font-weight:800; line-height:1.5; }
 .pri-why{ font-size:12.5px; color:var(--ink-2); margin-top:5px; line-height:1.75; }
@@ -654,7 +707,7 @@ html{ scroll-behavior:smooth; }
 .pri-save .l{ font-size:10.5px; color:var(--muted); font-weight:700; }
 .pri-flag{
   display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.05em;
-  background:var(--series-ai); color:#fff; padding:2px 8px; border-radius:5px;
+  background:var(--series-ai); color:var(--on-dark); padding:2px 8px; border-radius:5px;
   margin-bottom:6px;
 }
 @media (max-width:520px){
@@ -713,7 +766,7 @@ html{ scroll-behavior:smooth; }
   display:inline-block; font-size:11px; font-weight:800; letter-spacing:.02em;
   padding:3px 9px; border-radius:6px; white-space:nowrap;
 }
-.verdict.ai{    background:var(--series-ai);  color:#fff; }
+.verdict.ai{    background:var(--series-ai);  color:var(--on-dark); }
 .verdict.half{  background:var(--accent-soft); color:var(--accent-2); border:1px solid var(--accent-line); }
 .verdict.human{ background:var(--surface-3); color:var(--ink-2); border:1px solid var(--line); }
 .step-time{
@@ -748,8 +801,8 @@ html{ scroll-behavior:smooth; }
 /* 「渡さない工程」は自分に残る側。だから色もインディゴ側に揃える。
    暖色（ラスト）は「AIに渡す・操作する」側だけに使う。 */
 .keepbox{
-  background:linear-gradient(180deg,#f2f4fb,var(--surface) 70%);
-  border:1px solid #d9dded; border-radius:var(--radius); padding:18px;
+  background:linear-gradient(180deg,var(--series-keep-tint),var(--surface) 70%);
+  border:1px solid var(--series-keep-line); border-radius:var(--radius); padding:18px;
 }
 .keepbox h3{
   font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px;
@@ -771,17 +824,17 @@ html{ scroll-behavior:smooth; }
 .prompt + .prompt{ margin-top:13px; }
 .prompt-head{
   display:flex; align-items:center; gap:11px; padding:13px 15px;
-  background:var(--ink-deep); color:#fff;
+  background:var(--ink-deep); color:var(--on-dark);
 }
 .prompt-step{
   flex:none; font-size:10.5px; font-weight:800; letter-spacing:.08em;
-  background:rgba(255,255,255,.16); padding:3px 8px; border-radius:5px;
+  background:var(--on-dark-fill-2); padding:3px 8px; border-radius:5px;
 }
 .prompt-title{ flex:1; min-width:0; font-size:14px; font-weight:800; line-height:1.45; }
 .copy{
   flex:none; display:inline-flex; align-items:center; gap:6px;
   font-size:12.5px; font-weight:800; padding:8px 13px; border-radius:8px;
-  background:var(--series-ai); color:#fff; transition:filter .13s, transform .13s;
+  background:var(--series-ai); color:var(--on-dark); transition:filter .13s, transform .13s;
 }
 .copy:hover{ filter:brightness(1.07); transform:translateY(-1px); }
 .copy.is-done{ background:var(--st-good); }
@@ -801,14 +854,14 @@ html{ scroll-behavior:smooth; }
   font-family:ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
               "Noto Sans Mono CJK JP", monospace;
   font-size:12.5px; line-height:1.85; white-space:pre-wrap; word-break:break-word;
-  background:#fbfcfd; color:#22232a; border:0;
+  background:var(--code-bg); color:var(--code-ink); border:0;
   -webkit-overflow-scrolling:touch;
 }
 .prompt-body::-webkit-scrollbar{ width:9px; }
-.prompt-body::-webkit-scrollbar-thumb{ background:#ddd8ce; border-radius:99px; }
+.prompt-body::-webkit-scrollbar-thumb{ background:var(--scroll-thumb); border-radius:99px; }
 .prompt-fill{
-  background:#fff2cc; color:#7a5600; font-weight:700; padding:0 3px;
-  border-radius:3px; border-bottom:1.5px solid #e0b64a;
+  background:var(--fill-bg); color:var(--fill-ink); font-weight:700; padding:0 3px;
+  border-radius:3px; border-bottom:1.5px solid var(--fill-line);
 }
 .prompt-foot{
   padding:11px 15px; border-top:1px solid var(--line); background:var(--surface-2);
@@ -817,7 +870,7 @@ html{ scroll-behavior:smooth; }
 
 /* --- 貼り先への導線 --- */
 .openbox{
-  background:linear-gradient(180deg,#fdf7f3,var(--surface) 60%);
+  background:linear-gradient(180deg,var(--accent-tint),var(--surface) 60%);
   border:1.5px solid var(--accent-line); border-radius:var(--radius); padding:18px;
 }
 .openbox-t{ font-size:14.5px; font-weight:800; margin-bottom:13px; }
@@ -848,7 +901,7 @@ html{ scroll-behavior:smooth; }
 }
 .plan-when{
   flex:none; min-width:62px; text-align:center; font-size:11.5px; font-weight:800;
-  color:#fff; background:var(--ink-deep); border-radius:7px; padding:5px 8px; margin-top:1px;
+  color:var(--on-dark); background:var(--ink-deep); border-radius:7px; padding:5px 8px; margin-top:1px;
 }
 .plan-txt{ flex:1; min-width:0; font-size:13.5px; line-height:1.8; }
 .plan-txt b{ font-weight:800; }
@@ -962,21 +1015,21 @@ html{ scroll-behavior:smooth; }
 }
 .closing::after{
   content:""; position:absolute; right:-60px; top:-60px; width:200px; height:200px;
-  background:radial-gradient(circle, rgba(194,65,12,.26), transparent 68%);
+  background:radial-gradient(circle, rgba(var(--accent-rgb),.26), transparent 68%);
   pointer-events:none;
 }
 .closing-lead{
-  font-size:12px; font-weight:800; letter-spacing:.13em; color:#96938c; margin-bottom:12px;
+  font-size:12px; font-weight:800; letter-spacing:.13em; color:var(--on-dark-3); margin-bottom:12px;
 }
-.closing-main{ font-size:16px; line-height:1.95; color:#eae7e1; font-weight:600; }
+.closing-main{ font-size:16px; line-height:1.95; color:var(--on-dark-body); font-weight:600; }
 .closing-main b{
-  color:#fff; background:linear-gradient(transparent 74%, rgba(194,65,12,.8) 74%);
+  color:var(--on-dark); background:linear-gradient(transparent 74%, rgba(var(--accent-rgb),.8) 74%);
 }
 .closing-sub{
-  margin-top:17px; padding-top:16px; border-top:1px solid rgba(255,255,255,.17);
-  font-size:14px; line-height:1.9; color:#c4c1b9;
+  margin-top:17px; padding-top:16px; border-top:1px solid var(--on-dark-line);
+  font-size:14px; line-height:1.9; color:var(--on-dark-2);
 }
-.closing-sub b{ color:#fff; }
+.closing-sub b{ color:var(--on-dark); }
 
 /* --- シェア --- */
 .sharebox{
@@ -993,8 +1046,8 @@ html{ scroll-behavior:smooth; }
   box-shadow:var(--shadow-1);
 }
 .shbtn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-2); }
-.shbtn-line{ background:#067d38; color:#fff; }   /* LINE緑は白文字だと2.3:1 なので暗くしている */
-.shbtn-img{ background:var(--accent); color:#fff; }
+.shbtn-line{ background:var(--brand-line-green); color:var(--on-dark); }   /* LINE緑は白文字だと2.3:1 なので暗くしている */
+.shbtn-img{ background:var(--accent); color:var(--on-dark); }
 .shbtn-copy{ background:var(--surface); color:var(--ink-2); border-color:var(--line); }
 .sharebox-note{ font-size:11.5px; color:var(--muted); margin-top:13px; line-height:1.75; }
 
@@ -1010,7 +1063,7 @@ html{ scroll-behavior:smooth; }
 /* --- トースト --- */
 .toast{
   position:fixed; left:50%; bottom:26px; transform:translate(-50%,22px);
-  background:var(--ink); color:#fff; font-size:13.5px; font-weight:700;
+  background:var(--ink); color:var(--on-dark); font-size:13.5px; font-weight:700;
   padding:12px 22px; border-radius:99px; box-shadow:var(--shadow-3);
   opacity:0; pointer-events:none; transition:opacity .22s, transform .22s; z-index:200;
   max-width:calc(100vw - 32px); text-align:center;
@@ -1024,7 +1077,7 @@ html{ scroll-behavior:smooth; }
 
 /* --- 印刷 --- */
 @media print{
-  body{ background:#fff; }
+  body{ background:var(--surface); }
   .q-head,.q-foot,.r-actions,.toast,.copy,.foot,.rnav,.sharebox,.openbox{ display:none !important; }
   .r-hero{ background:var(--ink-deep) !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .acc-panel{ display:block !important; }
@@ -1410,10 +1463,10 @@ ${c.confLine}
   steps:[
     { n:'何を決める会議かを決める', d:'目的・ゴール・落としどころを固める',
       share:.15, sens:false,
-      why:'<b>ここが資料作成時間の総量を決めています。</b>決めたいことが曖昧なままAIに「アジェンダを作って」と頼むと、議題が5つに増えて資料も膨らみます。壁打ちは品質向上には使えますが、<b>1つに絞る判断時間は削れない</b>ため、削減は0で固定しています。' },
+      why:'<b>ここが資料作成時間の総量を決めています。</b>決めたいことが曖昧なままAIに「アジェンダを作って」と頼むと、議題が5つに増えて資料も膨らみます。壁打ちは品質向上には使えますが、<b>1つに絞る判断時間は削れない</b>ため、判断の重さが加点を上回り、代替率は実質0になります。' },
     { n:'情報・数字を集める',       d:'必要なデータを各所から引っ張ってくる',
       share:.20, sens:false,
-      why:'<b>「何を集めるべきか」のリスト出しは渡せます</b>が、社内のどこにあるかを知っているのはあなたです。集める行為自体は残ります。' },
+      why:'<b>「何を集めるべきか」のリスト出しは渡せます</b>が、社内のどこにあるかを知っているのはあなたです。<b>集める行為そのものは残る</b>ため、この工程の時間は削れず、代替率は0になります。' },
     { n:'アジェンダ・骨子を作る',   d:'議題の並べ方、時間配分、配布資料の設計',
       share:.15, sens:false,
       why:'<b>目的さえ書けば、構成は渡せます。</b>しかも中身の数字を貼らずに済むので、機密ルールが厳しい環境でも真っ先に着手できる工程です。' },
@@ -1595,7 +1648,7 @@ ${c.confLine}`; } }
   steps:[
     { n:'背景・目的を整理する',       d:'何に困っていて、なぜ必要かを言語化する',
       share:.20, sens:true,
-      why:'<b>困りごとを言語化するのはあなたですが、壁打ち相手にはなります。</b>「なぜ必要か」を3回聞き返させると、説明文の芯が固まります。' },
+      why:'<b>困りごとを言語化するのはあなたですが、壁打ち相手にはなります。</b>「なぜ必要か」を3回聞き返させると、説明文の芯が固まります。ただし<b>芯を決めるのはあなた</b>なので、この工程の時間は削れず、代替率は0です。次の工程が速くなる形で効きます。' },
     { n:'説明文のドラフトを書く',     d:'課題→対応案→効果→費用の順で文章化する',
       share:.38, sens:true,
       why:'<b>5業務の中で最も削れる工程です。</b>稟議は型が決まっているぶん、材料さえ揃えば文章化はほぼ渡せます。' },
@@ -1669,7 +1722,7 @@ ${c.confLine}`; } }
       why:'<b>これはAIではなく、レポート設定の話です。</b>毎月同じ抽出をしているなら、そちらを固定するほうが確実に早い。AIに投げても削れないので、<b>削減ゼロで固定</b>しています。' },
     { n:'増減の要因を特定する',       d:'なぜ上がったか／下がったかを突き止める',
       share:.20, sens:true,
-      why:'<b>数字は「落ちた」事実しか語りません。</b>「先月末の大口が翌月にずれた」はシステムの外にある情報です。AIができるのは仮説出しまで。' },
+      why:'<b>数字は「落ちた」事実しか語りません。</b>「先月末の大口が翌月にずれた」はシステムの外にある情報です。AIができるのは仮説出しまでで、<b>どれが本当の要因かを決めるのはあなた</b>。この工程の時間は削れないため、代替率は0です。' },
     { n:'説明文のドラフトを書く',     d:'要因を文章として組み立てる',
       share:.30, sens:true,
       why:'<b>要因さえ自分で特定できていれば、文章化は渡せます。</b>ここが最大の削減源です。' },
@@ -1997,7 +2050,8 @@ function show(id){
   scrollTop();
 }
 const ICON = {
-  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 6.5"/></svg>',
+  /* 色は持たせない。currentColor にして、載せる面ごとにCSS側で決める */
+  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 6.5"/></svg>',
   chev:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
   warn:  '<svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9.2"/></svg>',
   copy:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5.5 15H4.5A1.5 1.5 0 013 13.5v-9A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5v1"/></svg>',
@@ -2178,7 +2232,7 @@ function compute(){
     const steps = job.steps.map(function(st, i){
       const cur   = weekly * shares[i];
       /* 効いている代替率。習熟係数と、貼付が要る工程のみ機密係数を掛ける */
-      const eff   = Math.min(0.95, rates[i] * skill * (st.sens ? conf : 1));
+      const eff   = Math.min(RATE_CAP, rates[i] * skill * (st.sens ? conf : 1));
       const saved = cur * eff;
       return {
         def: st, i: i,
@@ -2639,7 +2693,8 @@ function renderPrompts(r){
       '</div>' +
       '<pre class="prompt-body">' + html + '</pre>' +
       '<div class="prompt-foot">' + esc(p.foot) +
-        '　／　<span style="background:#fff2cc;padding:0 4px;border-radius:3px">黄色の箇所</span>' +
+        /* 見本は実物と同じ .prompt-fill で組む。別々に色を書くと片方だけ追随しなくなる */
+        '　／　<span class="prompt-fill">黄色の箇所</span>' +
         'は、あなたが埋める欄です。ここを埋めないと、また当たり障りのない出力が返ってきます。</div>' +
     '</div>';
   }).join('');
@@ -2772,23 +2827,48 @@ function shareText(){
     SHARE.url;
 }
 
+/* Canvas は CSS 変数を直接解釈しないので、:root から読み出して使う。
+   ここで色を再定義すると、配色を変えたときにカードだけ取り残される。 */
+function palette(){
+  const cs = getComputedStyle(document.documentElement);
+  const v = function(name, fallback){
+    const s = cs.getPropertyValue(name).trim();
+    return s || fallback;   /* 取得できない環境でも描けるようにする */
+  };
+  const accentRgb = v('--accent-rgb', '194,65,12');
+  return {
+    bg:      v('--ink-deep',      '#1a1b1f'),
+    accent:  v('--accent',        '#c2410c'),
+    glow0:   'rgba(' + accentRgb + ',.34)',
+    glow1:   'rgba(' + accentRgb + ',0)',
+    onDark:  v('--on-dark',       '#ffffff'),
+    num2:    v('--on-dark-num2',  '#cdc9c0'),
+    text1:   v('--on-dark-1',     '#e3e0d9'),
+    text2:   v('--on-dark-2',     '#c4c1b9'),
+    label:   v('--on-dark-3',     '#96938c'),
+    rule:    v('--on-dark-fill-2','rgba(255,255,255,.16)'),
+    accentOn:v('--on-dark-accent','#e8834f')
+  };
+}
+
 /* 結果カードを Canvas で描く。外部ライブラリは使わない */
 function buildShareCard(){
   const W = 1200, H = 630, c = document.createElement('canvas');
   c.width = W; c.height = H;
   const x = c.getContext('2d');
   const F = '"Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,system-ui,sans-serif';
+  const P = palette();
 
-  x.fillStyle = '#1a1b1f'; x.fillRect(0, 0, W, H);
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
   const g = x.createRadialGradient(W * .92, -60, 0, W * .92, -60, 620);
-  g.addColorStop(0, 'rgba(194,65,12,.34)'); g.addColorStop(1, 'rgba(194,65,12,0)');
+  g.addColorStop(0, P.glow0); g.addColorStop(1, P.glow1);
   x.fillStyle = g; x.fillRect(0, 0, W, H);
-  x.fillStyle = '#c2410c'; x.fillRect(0, 0, 8, H);
+  x.fillStyle = P.accent; x.fillRect(0, 0, 8, H);
 
-  x.fillStyle = '#96938c'; x.font = '600 24px ' + F;
+  x.fillStyle = P.label; x.font = '600 24px ' + F;
   x.fillText('工程で切る、AI引き継ぎ診断', 72, 92);
 
-  x.fillStyle = '#c9c6be'; x.font = '600 27px ' + F;
+  x.fillStyle = P.text2; x.font = '600 27px ' + F;
   x.fillText('定着後、' + (SHARE.useAnnual ? '1年間' : '1週間') + 'あたりAIに渡せる時間', 72, 172);
 
   /* 主役の数字 */
@@ -2799,25 +2879,25 @@ function buildShareCard(){
     x.fillStyle = col; x.font = '800 ' + size + 'px ' + F;
     x.fillText(t, cx, 296); cx += x.measureText(t).width;
   };
-  if (h > 0) { put(String(h), 132, '#ffffff'); put('時間', 52, '#cdc9c0'); }
-  if (m > 0 || h === 0) { put(String(m), 132, '#ffffff'); put('分', 52, '#cdc9c0'); }
+  if (h > 0) { put(String(h), 132, P.onDark); put('時間', 52, P.num2); }
+  if (m > 0 || h === 0) { put(String(m), 132, P.onDark); put('分', 52, P.num2); }
 
-  x.strokeStyle = 'rgba(255,255,255,.16)'; x.lineWidth = 1;
+  x.strokeStyle = P.rule; x.lineWidth = 1;
   x.beginPath(); x.moveTo(72, 350); x.lineTo(W - 72, 350); x.stroke();
 
   const line = (label, value, y, col) => {
-    x.fillStyle = '#8e8b84'; x.font = '700 21px ' + F;
+    x.fillStyle = P.label; x.font = '700 21px ' + F;
     x.fillText(label, 72, y);
     x.fillStyle = col; x.font = '700 27px ' + F;
     let t = value, max = W - 300;
     while (x.measureText(t).width > max && t.length > 4) t = t.slice(0, -2) + '…';
     x.fillText(t, 232, y);
   };
-  line('最優先', SHARE.topName,  405, '#ffffff');
-  line('渡す',   SHARE.bigStep,  460, '#e8834f');
-  line('渡さない', SHARE.keepStep, 515, '#c9c6be');
+  line('最優先', SHARE.topName,  405, P.onDark);
+  line('渡す',   SHARE.bigStep,  460, P.accentOn);
+  line('渡さない', SHARE.keepStep, 515, P.text2);
 
-  x.fillStyle = '#83858e'; x.font = '600 20px ' + F;
+  x.fillStyle = P.label; x.font = '600 20px ' + F;
   x.fillText('AIに渡すのは業務じゃない、工程です。　/　所要3分・登録不要', 72, 578);
   return c;
 }
@@ -3330,7 +3410,7 @@ function bindResult(){
       copyText(text).then(function(ok){
         if (!ok) { toast('コピーできませんでした。手動で選択してください'); return; }
         btn.classList.add('is-done');
-        btn.innerHTML = ICON.check.replace(/#fff/g, 'currentColor') + 'コピーしました';
+        btn.innerHTML = ICON.check + 'コピーしました';
         toast('プロンプトをコピーしました。黄色の欄を埋めてから貼ってください');
         setTimeout(function(){
           btn.classList.remove('is-done');
