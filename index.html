@@ -776,7 +776,9 @@ html{ scroll-behavior:smooth; }
 .step-time b{ color:var(--series-ai); font-size:12.5px; }
 .step-time .arrow{ color:var(--muted); margin:0 3px; }
 .step-rate{
-  font-size:10.5px; color:var(--muted); margin-top:4px; white-space:nowrap;
+  /* 27工程すべてに出る「根拠の数字」。結果画面でいちばん小さい文字だったため、
+     直上の .step-time（11.5px）に揃えて底上げした */
+  font-size:11.5px; color:var(--muted); margin-top:4px; white-space:nowrap;
   font-variant-numeric:tabular-nums; letter-spacing:.01em;
 }
 .step-rate .sep{ opacity:.5; margin:0 4px; }
